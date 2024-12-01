@@ -1,3 +1,3 @@
 # web-reGOn
 
-usage: go run recon.go <url>
+usage: go run recon.go [url]
