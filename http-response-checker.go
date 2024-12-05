@@ -16,7 +16,7 @@ const (
 )
 
 func main(){
-	fmt.Println("Enter the URL: ")
+	fmt.Println("Enter the URL (http://url.com): ")
 	read := bufio.NewReader(os.Stdin)
 	url, _ := read.ReadString('\n')
 	
