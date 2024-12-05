@@ -8,74 +8,6 @@ import(
 )
 
 const (
-	StatusContinue           = 100
-	StatusSwitchingProtocols = 101
-	StatusProcessing         = 102
-	StatusEarlyHints         = 103
-
-	StatusOK                   = 200
-	StatusCreated              = 201
-	StatusAccepted             = 202
-	StatusNonAuthoritativeInfo = 203
-	StatusNoContent            = 204
-	StatusResetContent         = 205
-	StatusPartialContent       = 206
-	StatusMultiStatus          = 207
-	StatusAlreadyReported      = 208
-	StatusIMUsed               = 226
-
-	StatusMultipleChoices  = 300
-	StatusMovedPermanently = 301
-	StatusFound            = 302
-	StatusSeeOther         = 303
-	StatusNotModified      = 304
-	StatusUseProxy         = 305
-	StatusTemporaryRedirect = 307
-	StatusPermanentRedirect = 308
-
-	StatusBadRequest                   = 400
-	StatusUnauthorized                 = 401
-	StatusPaymentRequired              = 402
-	StatusForbidden                    = 403
-	StatusNotFound                     = 404
-	StatusMethodNotAllowed             = 405
-	StatusNotAcceptable                = 406
-	StatusProxyAuthRequired            = 407
-	StatusRequestTimeout               = 408
-	StatusConflict                     = 409
-	StatusGone                         = 410
-	StatusLengthRequired               = 411
-	StatusPreconditionFailed           = 412
-	StatusRequestEntityTooLarge        = 413
-	StatusRequestURITooLong            = 414
-	StatusUnsupportedMediaType         = 415
-	StatusRequestedRangeNotSatisfiable = 416
-	StatusExpectationFailed            = 417
-	StatusMisdirectedRequest           = 421
-	StatusUnprocessableEntity          = 422
-	StatusLocked                       = 423
-	StatusFailedDependency             = 424
-	StatusTooEarly                     = 425
-	StatusUpgradeRequired              = 426
-	StatusPreconditionRequired         = 428
-	StatusTooManyRequests              = 429
-	StatusRequestHeaderFieldsTooLarge  = 431
-	StatusUnavailableForLegalReasons   = 451
-
-	StatusInternalServerError           = 500
-	StatusNotImplemented                = 501
-	StatusBadGateway                    = 502
-	StatusServiceUnavailable            = 503
-	StatusGatewayTimeout                = 504
-	StatusHTTPVersionNotSupported       = 505
-	StatusVariantAlsoNegotiates         = 506
-	StatusInsufficientStorage           = 507
-	StatusLoopDetected                  = 508
-	StatusNotExtended                   = 510
-	StatusNetworkAuthenticationRequired = 511
-)
-
-const (
 	Reset = "\033[0m" //reset colors back to default after printing the colored texts
 	Red = "\033[31m"
 	Blue = "\033[34m"
@@ -104,10 +36,25 @@ func main(){
 	defer resp.Body.Close()
 	
 	switch resp.StatusCode {
+	//Successful Responses
 	case 200:
 		fmt.Printf("%s %s[200]: OK%s", url, Green, Reset)
+		
+	//Client Error Responses
+	case 400:
+		fmt.Printf("%s %s[400]: Bad Request", url, Orange, Reset)
+	case 401:
+		fmt.Printf("%s %s[401]: Unauthorized", url, Red, Reset)
+	case 403:
+		fmt.Printf("%s %s[403]: Forbidden", url, Red, Reset)
 	case 404:
 		fmt.Printf("%s %s[404]: Not Found%s", url, Red, Reset)
+		
+	//Server Error Responses
+	case 502:
+		fmt.Printf("%s %s[502]: Bad Gateway", url, Orange, Reset)
+	case 503:
+		fmt.Printf("%s %s[503]: Service Unavailable", url, Orange, Reset)
 	default:
 		fmt.Println("---")
 	}
