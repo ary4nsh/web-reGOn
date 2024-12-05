@@ -42,19 +42,19 @@ func main(){
 		
 	//Client Error Responses
 	case 400:
-		fmt.Printf("%s %s[400]: Bad Request", url, Orange, Reset)
+		fmt.Printf("%s %s[400]: Bad Request%s", url, Orange, Reset)
 	case 401:
-		fmt.Printf("%s %s[401]: Unauthorized", url, Red, Reset)
+		fmt.Printf("%s %s[401]: Unauthorized%s", url, Red, Reset)
 	case 403:
-		fmt.Printf("%s %s[403]: Forbidden", url, Red, Reset)
+		fmt.Printf("%s %s[403]: Forbidden%s", url, Red, Reset)
 	case 404:
 		fmt.Printf("%s %s[404]: Not Found%s", url, Red, Reset)
 		
 	//Server Error Responses
 	case 502:
-		fmt.Printf("%s %s[502]: Bad Gateway", url, Orange, Reset)
+		fmt.Printf("%s %s[502]: Bad Gateway%s", url, Orange, Reset)
 	case 503:
-		fmt.Printf("%s %s[503]: Service Unavailable", url, Orange, Reset)
+		fmt.Printf("%s %s[503]: Service Unavailable%s", url, Orange, Reset)
 	default:
 		fmt.Println("---")
 	}
