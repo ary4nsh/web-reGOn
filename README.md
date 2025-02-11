@@ -6,7 +6,7 @@ You should install [go](https://go.dev/doc/install)
 ## [Usage]
 ```bash
 Flags:
-  -h:   Prints HTTP Status Code
+  -h:  Prints HTTP Status Code
   -d:  Prints DNS Records
 ```
 ## [Input]
