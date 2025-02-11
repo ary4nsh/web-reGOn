@@ -3,13 +3,13 @@
 ## [Usage]
 
 For Linux:
-'''bash
+```bash
 ./linux-reGOn -d $URL
 ./linux-reGOn -h $URL
-,,,
+```
 
 For Mac:
-...bash
+```bash
 ./mac-reGOn -d $URL
 ./mac-reGOn -h $URL
-'''
+```
