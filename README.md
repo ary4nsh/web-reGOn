@@ -3,11 +3,6 @@
 
 ## [Requirements]
 You should install [go](https://go.dev/doc/install)
-
-For Mac:
-```bash
-brew update && brew install go
-```
 ## [Usage]
 ```bash
 Flags:
