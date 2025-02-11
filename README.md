@@ -1,6 +1,6 @@
 # web-reGOn
 
-#[Usage]
+## [Usage]
 For Linux:
 ./linux-reGOn -d $URL
 ./linux-reGOn -h $URL
