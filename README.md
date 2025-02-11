@@ -1,15 +1,8 @@
 # web-reGOn
 
 ## [Usage]
-
-For Linux:
 ```bash
-./linux-reGOn -d $URL
-./linux-reGOn -h $URL
+-h:   Prints HTTP Status Code
+-d:  Prints DNS Records
 ```
-
-For Mac:
-```bash
-./mac-reGOn -d $URL
-./mac-reGOn -h $URL
-```
+## [Input]
