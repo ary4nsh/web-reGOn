@@ -1,6 +1,7 @@
 # web-reGOn
 
 ## [Usage]
+'''
 For Linux:
 ./linux-reGOn -d $URL
 ./linux-reGOn -h $URL
@@ -8,3 +9,4 @@ For Linux:
 For Mac:
 ./mac-reGOn -d $URL
 ./mac-reGOn -h $URL
+'''
