@@ -6,15 +6,13 @@ You should install [go](https://go.dev/doc/install)
 ## [Usage]
 ```bash
 Flags:
-  -h:  Prints HTTP Status Code
-  -d:  Prints DNS Records
+  -D, --dns      HTTP Status Code
+  -h, --help     help for linux-reGOn
+  -H, --http     DNS Records
+  -S, --shodan   Shodan Host IP Query (api key needed)
 ```
 ## [Input]
 For Linux:
 ```bash
 ./linux-reGOn [Flag] $URL
-```
-For Mac:
-```bash
-./mac-reGOn [Flag] $URL
 ```
