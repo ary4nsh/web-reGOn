@@ -16,7 +16,6 @@ const (
 )
 
 func HttpResponse(URL string, wg *sync.WaitGroup) {
-	defer wg.Done()
 
 	if !strings.HasPrefix(URL, "http://") && !strings.HasPrefix(URL, "https://") {
 		URL = "http://" + URL
