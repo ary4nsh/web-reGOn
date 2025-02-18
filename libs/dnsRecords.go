@@ -7,7 +7,6 @@ import(
 )
 
 func DnsRecords(URL string, wg *sync.WaitGroup){
-	defer wg.Done()
 
 	//Look up ip address
 	fmt.Println()
