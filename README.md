@@ -25,5 +25,6 @@ Flags:
 ## [Input]
 For Linux:
 ```bash
+sudo chmod +x linux-reGOn
 ./linux-reGOn [Flag] $URL
 ```
