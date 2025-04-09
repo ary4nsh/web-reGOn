@@ -195,7 +195,7 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
 	rootCmd.Flags().StringVarP(&flags.firstName, "first-name", "", "", "First name of the person")
 	rootCmd.Flags().StringVarP(&flags.lastName, "last-name", "", "", "Last name of the person")
-	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "Hunter.io API key")
+	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
 
 
