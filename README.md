@@ -6,7 +6,7 @@ You should install [go](https://go.dev/doc/install)
 ## [Usage]
 ```bash
 Flags:
-      --api-key string        Hunter.io API key
+      --api-key string        API key
       --combined-enrichment   Company and Email enrichment information
       --company-enrichment    Company enrichment information
   -D, --dns                   DNS Records
