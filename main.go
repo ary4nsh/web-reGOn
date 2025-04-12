@@ -34,7 +34,6 @@ type Flags struct {
 	firstName           string
 	lastName            string
 	email		    string
-	//ip		    string
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -202,8 +201,6 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.lastName, "last-name", "", "", "Last name of the person")
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
-	//rootCmd.Flags().StringVarP(&flags.ip, "ip", "", "", "IP address") 
-
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
