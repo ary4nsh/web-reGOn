@@ -21,6 +21,7 @@ Flags:
   -H, --http                  HTTP Status Code
       --last-name string      Last name of the person
   -S, --shodan                Shodan Host IP Query
+      --snmp-walk             Perform SNMP walk on IP address
 ```
 ## [Input]
 For Linux:
