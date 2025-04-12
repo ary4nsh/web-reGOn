@@ -28,18 +28,20 @@ type Flags struct {
 	emailEnrichment     bool
 	emailFinder         bool
 	emailVerifier       bool
+	snmpWalk	    bool
 	apiKey		    string
 	domain              string
 	firstName           string
 	lastName            string
 	email		    string
+	//ip		    string
 }
 
 func anyFlagSet(flags Flags) bool {
 	return flags.dnsFlag || flags.httpFlag || flags.shodanFlag ||
 		flags.combinedEnrichment || flags.companyEnrichment ||
 		flags.domainSearch || flags.emailEnrichment ||
-		flags.emailFinder || flags.emailVerifier
+		flags.emailFinder || flags.emailVerifier || flags.snmpWalk
 }
 
 func main() {
@@ -119,10 +121,7 @@ func main() {
 			}
 
 			URL := args[0]
-			/*if err := validateURL(URL); err != nil {
-				fmt.Println(err)
-				return
-			}*/
+			ipAddress := args[0]
 
 			var wg sync.WaitGroup
 			functions := map[bool]func(){
@@ -171,6 +170,11 @@ func main() {
 					defer wg.Done()
 					emailVerifier.EmailVerifier(flags.apiKey, flags.email)
 				},
+				flags.snmpWalk: func() {
+					wg.Add(1)
+					defer wg.Done()
+					libs.SNMPWalk(ipAddress)
+				},
 			}
 
 			for flag, function := range functions {
@@ -192,11 +196,13 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.emailEnrichment, "email-enrichment", "", false, "Email enrichment information")
 	rootCmd.Flags().BoolVarP(&flags.emailFinder, "email-finder", "", false, "Find email address from domain and person names")
 	rootCmd.Flags().BoolVarP(&flags.emailVerifier, "email-verifier", "", false, "Verify email address deliverability")
+	rootCmd.Flags().BoolVarP(&flags.snmpWalk, "snmp-walk", "", false, "Perform SNMP walk on IP address")
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
 	rootCmd.Flags().StringVarP(&flags.firstName, "first-name", "", "", "First name of the person")
 	rootCmd.Flags().StringVarP(&flags.lastName, "last-name", "", "", "Last name of the person")
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
+	//rootCmd.Flags().StringVarP(&flags.ip, "ip", "", "", "IP address") 
 
 
 	if err := rootCmd.Execute(); err != nil {
