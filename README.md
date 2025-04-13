@@ -21,6 +21,8 @@ Flags:
   -H, --http                  HTTP Status Code
       --last-name string      Last name of the person
   -S, --shodan                Shodan Host IP Query
+      --snmp-enumshares       Enumerate SNMP Windows SMB Share
+      --snmp-enumusers        Enumerate SNMP Windows users
       --snmp-walk             Perform SNMP walk on IP address
 ```
 ## [Input]
