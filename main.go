@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"web-reGOn/libs"
+	"web-reGOn/libs/snmp"
 	"web-reGOn/hunter.io/combined-enrichment"
 	"web-reGOn/hunter.io/company-enrichment"
 	"web-reGOn/hunter.io/domain-search"
@@ -29,6 +30,8 @@ type Flags struct {
 	emailFinder         bool
 	emailVerifier       bool
 	snmpWalk	    bool
+	snmpEnumUsers	    bool
+	snmpEnumShares	    bool
 	apiKey		    string
 	domain              string
 	firstName           string
@@ -40,7 +43,8 @@ func anyFlagSet(flags Flags) bool {
 	return flags.dnsFlag || flags.httpFlag || flags.shodanFlag ||
 		flags.combinedEnrichment || flags.companyEnrichment ||
 		flags.domainSearch || flags.emailEnrichment ||
-		flags.emailFinder || flags.emailVerifier || flags.snmpWalk
+		flags.emailFinder || flags.emailVerifier || flags.snmpWalk ||
+		flags.snmpEnumUsers || flags.snmpEnumShares
 }
 
 func main() {
@@ -115,7 +119,7 @@ func main() {
 
 			// Check if URL is provided when at least one flag is set
 			if len(args) == 0 {
-				fmt.Println("Please provide a URL")
+				fmt.Println("Please provide a URL or an IP address")
 				return
 			}
 
@@ -172,7 +176,17 @@ func main() {
 				flags.snmpWalk: func() {
 					wg.Add(1)
 					defer wg.Done()
-					libs.SNMPWalk(ipAddress)
+					snmp.SNMPWalk(ipAddress)
+				},
+				flags.snmpEnumUsers: func() {
+					wg.Add(1)
+					defer wg.Done()
+					snmp.SNMPEnumUsers(ipAddress)
+				},
+				flags.snmpEnumShares: func() {
+					wg.Add(1)
+					defer wg.Done()
+					snmp.SNMPEnumShares(ipAddress)
 				},
 			}
 
@@ -196,11 +210,14 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.emailFinder, "email-finder", "", false, "Find email address from domain and person names")
 	rootCmd.Flags().BoolVarP(&flags.emailVerifier, "email-verifier", "", false, "Verify email address deliverability")
 	rootCmd.Flags().BoolVarP(&flags.snmpWalk, "snmp-walk", "", false, "Perform SNMP walk on IP address")
+	rootCmd.Flags().BoolVarP(&flags.snmpEnumUsers, "snmp-enumusers", "", false, "Enumerate SNMP Windows users")
+	rootCmd.Flags().BoolVarP(&flags.snmpEnumShares, "snmp-enumshares", "", false, "Enumerate SNMP Windows SMB Share")
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
 	rootCmd.Flags().StringVarP(&flags.firstName, "first-name", "", "", "First name of the person")
 	rootCmd.Flags().StringVarP(&flags.lastName, "last-name", "", "", "Last name of the person")
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
+
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
