@@ -4,6 +4,9 @@ import(
 	"fmt"
 	"net"
 	"sync"
+	"log"
+
+	"github.com/miekg/dns"
 )
 
 func DnsRecords(URL string, wg *sync.WaitGroup){
