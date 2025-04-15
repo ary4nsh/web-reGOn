@@ -20,6 +20,7 @@ Flags:
   -h, --help                  help for linux-reGOn
   -H, --http                  HTTP Status Code
       --last-name string      Last name of the person
+  -R, --resolver string       DNS resolver to use (e.g., 8.8.8.8)
   -S, --shodan                Shodan Host IP Query
       --snmp-enumshares       Enumerate SNMP Windows SMB Share
       --snmp-enumusers        Enumerate SNMP Windows users
