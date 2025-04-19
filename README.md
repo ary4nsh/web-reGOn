@@ -17,10 +17,11 @@ Flags:
       --email-finder          Find email address from domain and person names
       --email-verifier        Verify email address deliverability
       --first-name string     First name of the person
+      --ftp                   Scan FTP server
   -h, --help                  help for linux-reGOn
   -H, --http                  HTTP Status Code
       --last-name string      Last name of the person
-  -R, --resolver string       DNS resolver to use (e.g., 8.8.8.8)
+      --memcached             Scan Memcached server
   -S, --shodan                Shodan Host IP Query
       --snmp-enumshares       Enumerate SNMP Windows SMB Share
       --snmp-enumusers        Enumerate SNMP Windows users
