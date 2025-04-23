@@ -10,6 +10,7 @@ Flags:
       --combined-enrichment   Company and Email enrichment information
       --company-enrichment    Company enrichment information
   -D, --dns                   DNS Records
+      --dns-dumpster          Find & look up DNS records from dnsdumpster.com
       --domain string         Domain to search for email
       --domain-search         Domain search for email addresses
       --email string          Email address to verify
