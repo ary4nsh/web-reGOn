@@ -27,6 +27,7 @@ Flags:
       --snmp-enumshares       Enumerate SNMP Windows SMB Share
       --snmp-enumusers        Enumerate SNMP Windows users
       --snmp-walk             Perform SNMP walk on IP address
+      --whois                 Query for Whois records
       --zone-transfer         Perform zone transfer on a domain
 ```
 ## [Input]
