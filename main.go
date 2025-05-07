@@ -8,6 +8,7 @@ import (
 
 	"github.com/ary4nsh/web-reGOn/libs"
 	"github.com/ary4nsh/web-reGOn/libs/snmp"
+	"github.com/ary4nsh/web-reGOn/libs/smb"
 	"github.com/ary4nsh/web-reGOn/libs/ftp"
 	"github.com/ary4nsh/web-reGOn/libs/memcached"
 	"github.com/ary4nsh/web-reGOn/libs/dns"
@@ -37,6 +38,7 @@ type Flags struct {
 	dnsDumpster         bool
 	zoneTransfer        bool
 	whois               bool
+	smbEnumUsers	    bool
 	domain              string
 	firstName           string
 	lastName            string
@@ -51,34 +53,35 @@ func anyFlagSet(flags Flags) bool {
 		flags.emailFinder || flags.emailVerifier || flags.snmpWalk ||
 		flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 		flags.memcachedScan || flags.dnsDumpster || flags.zoneTransfer ||
-		flags.whois
+		flags.whois || flags.smbEnumUsers
 }
 
 func printUsage() {
 	fmt.Println("Usage: linux-reGOn [options] URL/IP")
-	fmt.Println("\nOptions:")
-	fmt.Println("      --dns                  DNS Records")
-	fmt.Println("      --http                 HTTP Status Code")
-	fmt.Println("      --shodan               Shodan Host IP Query")
+	fmt.Println("\nFlags:")
+	fmt.Println("      --api-key string       API key")
 	fmt.Println("      --combined-enrichment  Company and Email enrichment information")
 	fmt.Println("      --company-enrichment   Company enrichment information")
+	fmt.Println("      --dns                  DNS Records")
+	fmt.Println("      --dns-dumpster         Find & look up DNS records from dnsdumpster.com")
+	fmt.Println("      --domain string        Domain to search for email")
 	fmt.Println("      --domain-search        Domain search for email addresses")
+	fmt.Println("      --email string         Email address to verify")
 	fmt.Println("      --email-enrichment     Email enrichment information")
 	fmt.Println("      --email-finder         Find email address from domain and person names")
 	fmt.Println("      --email-verifier       Verify email address deliverability")
-	fmt.Println("      --snmp-walk            Perform SNMP walk on IP address")
-	fmt.Println("      --snmp-enumusers       Enumerate SNMP Windows users")
-	fmt.Println("      --snmp-enumshares      Enumerate SNMP Windows SMB Share")
-	fmt.Println("      --ftp                  Scan FTP server")
-	fmt.Println("      --memcached            Scan Memcached server")
-	fmt.Println("      --dns-dumpster         Find & look up DNS records from dnsdumpster.com")
-	fmt.Println("      --zone-transfer        Perform zone transfer on a domain")
-	fmt.Println("      --whois                Query for Whois records")
-	fmt.Println("      --domain string        Domain to search for email")
 	fmt.Println("      --first-name string    First name of the person")
+	fmt.Println("      --ftp                  Scan FTP server")
+	fmt.Println("      --http                 HTTP Status Code")
 	fmt.Println("      --last-name string     Last name of the person")
-	fmt.Println("      --api-key string       API key")
-	fmt.Println("      --email string         Email address to verify")
+	fmt.Println("      --memcached            Scan Memcached server")
+	fmt.Println("      --shodan               Shodan Host IP Query")
+	fmt.Println("      --smb-enumusers        Enumerate SMB users")
+	fmt.Println("      --snmp-enumshares      Enumerate SNMP Windows SMB Share")
+	fmt.Println("      --snmp-enumusers       Enumerate SNMP Windows users")
+	fmt.Println("      --snmp-walk            Perform SNMP walk on IP address")
+	fmt.Println("      --whois                Query for Whois records")
+	fmt.Println("      --zone-transfer        Perform zone transfer on a domain")
 }
 
 func main() {
@@ -102,6 +105,7 @@ func main() {
 	flag.BoolVar(&flags.dnsDumpster, "dns-dumpster", false, "Find & look up DNS records from dnsdumpster.com")
 	flag.BoolVar(&flags.zoneTransfer, "zone-transfer", false, "Perform zone transfer on a domain")
 	flag.BoolVar(&flags.whois, "whois", false, "Query for Whois records")
+	flag.BoolVar(&flags.smbEnumUsers, "smb-enumusers", false, "Enumerate SMB users")
 	flag.StringVar(&flags.domain, "domain", "", "Domain to search for email")
 	flag.StringVar(&flags.firstName, "first-name", "", "First name of the person")
 	flag.StringVar(&flags.lastName, "last-name", "", "Last name of the person")
@@ -228,6 +232,9 @@ func main() {
 		},
 		flags.whois: func() {
 			libs.Whois(URL)
+		},
+		flags.smbEnumUsers: func() {
+			smb.SMBEnumUsers(ipAddress)
 		},
 	}
 
