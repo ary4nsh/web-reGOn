@@ -1,5 +1,5 @@
 # web-reGOn
-
+This is a simple web reconnaissance tool written in golang
 
 ## [Requirements]
 You should install [go](https://go.dev/doc/install)
