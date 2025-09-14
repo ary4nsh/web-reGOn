@@ -20,10 +20,12 @@ Flags:
       --first-name string     First name of the person
       --ftp                   Scan FTP server
   -h, --help                  help for linux-reGOn
+      --hsts-header           Check HSTS and security headers
   -H, --http                  HTTP Status Code
       --http-options          HTTP OPTIONS Method Check
       --last-name string      Last name of the person
       --memcached             Scan Memcached server
+  -p, --port string           Port number to use with HTTP OPTIONS
   -S, --shodan                Shodan Host IP Query
       --snmp-enumshares       Enumerate SNMP Windows SMB Share
       --snmp-enumusers        Enumerate SNMP Windows users
