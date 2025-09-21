@@ -29,6 +29,7 @@ type Flags struct {
 	httpOptions	    bool
 	hstsHeader	    bool
 	cspHeader	    bool
+	riaHeader	    bool
 	shodanFlag          bool
 	combinedEnrichment  bool
 	companyEnrichment   bool
@@ -59,7 +60,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.emailFinder || flags.emailVerifier || flags.snmpWalk ||
 		flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 		flags.memcachedScan || flags.dnsDumpster || flags.zoneTransfer ||
-		flags.whois || flags.cspHeader
+		flags.whois || flags.cspHeader || flags.riaHeader
 }
 
 func main() {
@@ -171,6 +172,10 @@ func main() {
 				flags.cspHeader: func() {
 					http.CspHeader(URL) 
 				},
+				flags.riaHeader: func() {
+					// Execute crossdomain.xml check sequentially
+					http.RichInternetApplication(URL, flags.port)
+				},
 				flags.dnsFlag: func() {
 					wg.Add(1) // Increment the WaitGroup counter for the DNS function
 					go func() {
@@ -262,6 +267,7 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.httpOptions, "http-options", "", false, "HTTP OPTIONS Method Check")
 	rootCmd.Flags().BoolVarP(&flags.hstsHeader, "hsts-header", "", false, "Check HSTS and security headers")
 	rootCmd.Flags().BoolVarP(&flags.cspHeader, "csp", "", false, "Analyse Content-Security-Policy header")
+	rootCmd.Flags().BoolVarP(&flags.riaHeader, "ria", "", false, "Check crossdomain.xml")
 	rootCmd.Flags().BoolVarP(&flags.shodanFlag, "shodan", "S", false, "Shodan Host IP Query")
 	rootCmd.Flags().BoolVarP(&flags.combinedEnrichment, "combined-enrichment", "", false, "Company and Email enrichment information")
 	rootCmd.Flags().BoolVarP(&flags.companyEnrichment, "company-enrichment", "", false, "Company enrichment information")
