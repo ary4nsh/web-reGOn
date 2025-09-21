@@ -27,6 +27,7 @@ Flags:
       --last-name string      Last name of the person
       --memcached             Scan Memcached server
   -p, --port string           Port number to use with HTTP OPTIONS
+      --ria                   Check crossdomain.xml and clientaccesspolicy.xml
   -S, --shodan                Shodan Host IP Query
       --snmp-enumshares       Enumerate SNMP Windows SMB Share
       --snmp-enumusers        Enumerate SNMP Windows users
