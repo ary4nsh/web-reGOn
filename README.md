@@ -9,6 +9,7 @@ Flags:
       --api-key string        API key
       --combined-enrichment   Company and Email enrichment information
       --company-enrichment    Company enrichment information
+      --csp                   Analyse Content-Security-Policy header
   -D, --dns                   DNS Records
       --dns-dumpster          Find & look up DNS records from dnsdumpster.com
       --domain string         Domain to search for email
@@ -37,5 +38,5 @@ Flags:
 For Linux:
 ```bash
 sudo chmod +x linux-reGOn
-./linux-reGOn [Flag] $URL
+./linux-reGOn [Flag(s)] $URL
 ```
