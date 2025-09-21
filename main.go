@@ -267,7 +267,7 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.httpOptions, "http-options", "", false, "HTTP OPTIONS Method Check")
 	rootCmd.Flags().BoolVarP(&flags.hstsHeader, "hsts-header", "", false, "Check HSTS and security headers")
 	rootCmd.Flags().BoolVarP(&flags.cspHeader, "csp", "", false, "Analyse Content-Security-Policy header")
-	rootCmd.Flags().BoolVarP(&flags.riaHeader, "ria", "", false, "Check crossdomain.xml")
+	rootCmd.Flags().BoolVarP(&flags.riaHeader, "ria", "", false, "Check crossdomain.xml and clientaccesspolicy.xml")
 	rootCmd.Flags().BoolVarP(&flags.shodanFlag, "shodan", "S", false, "Shodan Host IP Query")
 	rootCmd.Flags().BoolVarP(&flags.combinedEnrichment, "combined-enrichment", "", false, "Company and Email enrichment information")
 	rootCmd.Flags().BoolVarP(&flags.companyEnrichment, "company-enrichment", "", false, "Company enrichment information")
