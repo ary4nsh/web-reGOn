@@ -26,8 +26,9 @@ const maxURLLength = 100
 type Flags struct {
 	dnsFlag             bool
 	httpFlag            bool
-	httpOptionsFlag     bool
-	hstsHeaderFlag      bool
+	httpOptions	    bool
+	hstsHeader	    bool
+	cspHeader	    bool
 	shodanFlag          bool
 	combinedEnrichment  bool
 	companyEnrichment   bool
@@ -52,13 +53,13 @@ type Flags struct {
 }
 
 func anyFlagSet(flags Flags) bool {
-	return flags.dnsFlag || flags.httpFlag || flags.httpOptionsFlag || flags.hstsHeaderFlag ||
+	return flags.dnsFlag || flags.httpFlag || flags.httpOptions || flags.hstsHeader ||
 		flags.shodanFlag || flags.combinedEnrichment || flags.companyEnrichment ||
 		flags.domainSearch || flags.emailEnrichment ||
 		flags.emailFinder || flags.emailVerifier || flags.snmpWalk ||
 		flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 		flags.memcachedScan || flags.dnsDumpster || flags.zoneTransfer ||
-		flags.whois
+		flags.whois || flags.cspHeader
 }
 
 func main() {
@@ -75,8 +76,8 @@ func main() {
 				return
 			}
 			
-			// Check if httpOptionsFlag is set and port is provided
-			if flags.httpOptionsFlag {
+			// Check if httpOptions is set and port is provided
+			if flags.httpOptions {
 				if flags.port == "" {
 					fmt.Println("Please provide port number when using --http-options (--port string)")
 					return
@@ -160,12 +161,15 @@ func main() {
 					// Execute HTTP response check sequentially
 					http.HttpResponse(URL, &wg)
 				},
-				flags.httpOptionsFlag: func() {
+				flags.httpOptions: func() {
 					// Execute HTTP OPTIONS check with port
 					http.HttpOptionsWithPort(URL, flags.port)
 				},
-				flags.hstsHeaderFlag: func() {
+				flags.hstsHeader: func() {
 					http.HstsHeaderWithPort(URL, flags.port)
+				},
+				flags.cspHeader: func() {
+					http.CspHeader(URL) 
 				},
 				flags.dnsFlag: func() {
 					wg.Add(1) // Increment the WaitGroup counter for the DNS function
@@ -255,8 +259,9 @@ func main() {
 
 	rootCmd.Flags().BoolVarP(&flags.dnsFlag, "dns", "D", false, "DNS Records")
 	rootCmd.Flags().BoolVarP(&flags.httpFlag, "http", "H", false, "HTTP Status Code")
-	rootCmd.Flags().BoolVarP(&flags.httpOptionsFlag, "http-options", "", false, "HTTP OPTIONS Method Check")
-	rootCmd.Flags().BoolVarP(&flags.hstsHeaderFlag, "hsts-header", "", false, "Check HSTS and security headers")
+	rootCmd.Flags().BoolVarP(&flags.httpOptions, "http-options", "", false, "HTTP OPTIONS Method Check")
+	rootCmd.Flags().BoolVarP(&flags.hstsHeader, "hsts-header", "", false, "Check HSTS and security headers")
+	rootCmd.Flags().BoolVarP(&flags.cspHeader, "csp", "", false, "Analyse Content-Security-Policy header")
 	rootCmd.Flags().BoolVarP(&flags.shodanFlag, "shodan", "S", false, "Shodan Host IP Query")
 	rootCmd.Flags().BoolVarP(&flags.combinedEnrichment, "combined-enrichment", "", false, "Company and Email enrichment information")
 	rootCmd.Flags().BoolVarP(&flags.companyEnrichment, "company-enrichment", "", false, "Company enrichment information")
