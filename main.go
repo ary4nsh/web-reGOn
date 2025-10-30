@@ -19,6 +19,7 @@ import (
 	"github.com/ary4nsh/web-reGOn/hunter.io/email-verifier"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 const maxURLLength = 100
@@ -53,6 +54,32 @@ type Flags struct {
 	port		    string
 }
 
+var flagGroups = map[string]string{
+	"dns":                "Reconnaissance",
+	"http":               "Reconnaissance",
+	"dns-dumpster":       "Reconnaissance",
+	"zone-transfer":      "Reconnaissance",
+	"whois":              "Reconnaissance",
+	
+	"shodan":              "Open Source Intelligence",
+	"combined-enrichment": "Open Source Intelligence",
+	"company-enrichment":  "Open Source Intelligence",
+	"domain-search":       "Open Source Intelligence",
+	"email-enrichment":    "Open Source Intelligence",
+	"email-finder":        "Open Source Intelligence",
+	"email-verifier":      "Open Source Intelligence",
+
+	"ftp":                "Misconfiguration",
+	"memcached":          "Misconfiguration",
+	"snmp-walk":          "Misconfiguration",
+	"snmp-enumusers":     "Misconfiguration",
+	"snmp-enumshares":    "Misconfiguration",
+	"http-options":       "Misconfiguration",
+	"hsts-header":        "Misconfiguration",
+	"ria":                "Misconfiguration",
+	"csp":                "Misconfiguration",
+}
+
 func anyFlagSet(flags Flags) bool {
 	return flags.dnsFlag || flags.httpFlag || flags.httpOptions || flags.hstsHeader ||
 		flags.shodanFlag || flags.combinedEnrichment || flags.companyEnrichment ||
@@ -73,7 +100,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Check if no flags are set
 			if !anyFlagSet(flags) {
-				fmt.Println("Please provide at least one flag")
+				cmd.Help()
 				return
 			}
 			
@@ -289,7 +316,39 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
 	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number to use with HTTP OPTIONS")
+	
+	rootCmd.SetUsageFunc(func(cmd *cobra.Command) error {
+	fmt.Println("Usage:")
+	fmt.Println("  linux-reGOn [url] [flags]")
+	fmt.Println()
 
+	groups := make(map[string][]string)
+
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		group := flagGroups[f.Name]
+		if group == "" {
+			group = "Other"
+		}
+		line := fmt.Sprintf("      --%-20s %s", f.Name, f.Usage)
+		if f.Shorthand != "" {
+			line = fmt.Sprintf("  -%s, --%-20s %s", f.Shorthand, f.Name, f.Usage)
+		}
+		groups[group] = append(groups[group], line)
+	})
+
+	order := []string{"Reconnaissance", "Misconfiguration", "Open Source Intelligence", "Other"}
+	for _, group := range order {
+		if lines, ok := groups[group]; ok {
+			fmt.Printf("[%s]\n", group)
+			for _, line := range lines {
+				fmt.Println(line)
+			}
+			fmt.Println()
+		}
+	}
+
+	return nil
+})
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
