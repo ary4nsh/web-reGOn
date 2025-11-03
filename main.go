@@ -334,8 +334,8 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
 	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number to use with HTTP OPTIONS")
-	rootCmd.Flags().StringVarP(&flags.wordlist, "wordlist", "w", "", "Wordlist file path for directory traversal")
-	rootCmd.Flags().IntVarP(&flags.threads, "threads", "t", 50, "Number of concurrent threads for directory traversal (default: 50)")
+	rootCmd.Flags().StringVarP(&flags.wordlist, "wordlist", "w", "", "Wordlist file path")
+	rootCmd.Flags().IntVarP(&flags.threads, "threads", "t", 50, "Number of concurrent threads (default: 50)")
 	
 	rootCmd.SetUsageFunc(func(cmd *cobra.Command) error {
 	fmt.Println("Usage:")
