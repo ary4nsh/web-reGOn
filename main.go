@@ -39,6 +39,7 @@ type Flags struct {
 	emailFinder         bool
 	emailVerifier       bool
 	memcachedScan	    bool
+	pathConfusion	    bool
 	snmpWalk	    bool
 	snmpEnumUsers	    bool
 	snmpEnumShares	    bool
@@ -52,6 +53,8 @@ type Flags struct {
 	lastName            string
 	email		    string
 	port		    string
+	wordlist            string
+	threads             int
 }
 
 var flagGroups = map[string]string{
@@ -78,6 +81,7 @@ var flagGroups = map[string]string{
 	"hsts-header":        "Misconfiguration",
 	"ria":                "Misconfiguration",
 	"csp":                "Misconfiguration",
+	"path-confusion":     "Misconfiguration",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -87,7 +91,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.emailFinder || flags.emailVerifier || flags.snmpWalk ||
 		flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 		flags.memcachedScan || flags.dnsDumpster || flags.zoneTransfer ||
-		flags.whois || flags.cspHeader || flags.riaHeader
+		flags.whois || flags.cspHeader || flags.riaHeader || flags.pathConfusion
 }
 
 func main() {
@@ -108,6 +112,14 @@ func main() {
 			if flags.httpOptions {
 				if flags.port == "" {
 					fmt.Println("Please provide port number when using --http-options (--port string)")
+					return
+				}
+			}
+			
+			// Check if dirTraversal is set and wordlist is provided
+			if flags.pathConfusion {
+				if flags.wordlist == "" {
+					fmt.Println("Please provide wordlist path when using --dir-traversal (--wordlist string)")
 					return
 				}
 			}
@@ -203,6 +215,10 @@ func main() {
 					// Execute crossdomain.xml check sequentially
 					http.RichInternetApplication(URL, flags.port)
 				},
+				flags.pathConfusion: func() {
+					// Execute directory traversal testing
+					http.PathConfusion(URL, flags.wordlist, flags.threads)
+				},
 				flags.dnsFlag: func() {
 					wg.Add(1) // Increment the WaitGroup counter for the DNS function
 					go func() {
@@ -294,6 +310,8 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.httpOptions, "http-options", "", false, "HTTP OPTIONS Method Check")
 	rootCmd.Flags().BoolVarP(&flags.hstsHeader, "hsts-header", "", false, "Check HSTS and security headers")
 	rootCmd.Flags().BoolVarP(&flags.cspHeader, "csp", "", false, "Analyse Content-Security-Policy header")
+	rootCmd.Flags().BoolVarP(&flags.pathConfusion, "path-confusion", "", false, "Path Confusion testing with wordlist and optional threads")
+
 	rootCmd.Flags().BoolVarP(&flags.riaHeader, "ria", "", false, "Check crossdomain.xml and clientaccesspolicy.xml")
 	rootCmd.Flags().BoolVarP(&flags.shodanFlag, "shodan", "S", false, "Shodan Host IP Query")
 	rootCmd.Flags().BoolVarP(&flags.combinedEnrichment, "combined-enrichment", "", false, "Company and Email enrichment information")
@@ -316,6 +334,8 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
 	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number to use with HTTP OPTIONS")
+	rootCmd.Flags().StringVarP(&flags.wordlist, "wordlist", "w", "", "Wordlist file path for directory traversal")
+	rootCmd.Flags().IntVarP(&flags.threads, "threads", "t", 50, "Number of concurrent threads for directory traversal (default: 50)")
 	
 	rootCmd.SetUsageFunc(func(cmd *cobra.Command) error {
 	fmt.Println("Usage:")
