@@ -18,6 +18,7 @@ You should install [go](https://go.dev/doc/install)
       --hsts-header          Check HSTS and security headers
       --http-options         HTTP OPTIONS Method Check
       --memcached            Scan Memcached server
+      --path-confusion       Path Confusion testing with wordlist and optional threads
       --ria                  Check crossdomain.xml and clientaccesspolicy.xml
       --snmp-enumshares      Enumerate SNMP Windows SMB Share
       --snmp-enumusers       Enumerate SNMP Windows users
@@ -40,6 +41,8 @@ You should install [go](https://go.dev/doc/install)
   -h, --help                 help for linux-reGOn
       --last-name            Last name of the person
   -p, --port                 Port number to use with HTTP OPTIONS
+  -t, --threads              Number of concurrent threads (default: 50)
+  -w, --wordlist             Wordlist file path
 ```
 ## [Input]
 For Linux:
