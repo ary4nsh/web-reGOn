@@ -9,6 +9,7 @@ You should install [go](https://go.dev/doc/install)
   -D, --dns                  DNS Records
       --dns-dumpster         Find & look up DNS records from dnsdumpster.com
   -H, --http                 HTTP Status Code
+      --waf                  Detect Web Application Firewall
       --whois                Query for Whois records
       --zone-transfer        Perform zone transfer on a domain
 
@@ -32,6 +33,9 @@ You should install [go](https://go.dev/doc/install)
       --email-finder         Find email address from domain and person names
       --email-verifier       Verify email address deliverability
   -S, --shodan               Shodan Host IP Query
+
+[Identity Management]
+      --hidden-directories   Discover hidden directories using wordlist
 
 [Other]
       --api-key              API key
