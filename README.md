@@ -1,7 +1,7 @@
 # web-reGOn
 This is a simple web reconnaissance and security testing tool built in Go for web application security assessment
 
-## [Requirements]
+## Requirements
 - Go 1.19 or higher [go](https://go.dev/doc/install)
 
 ## Build from source
@@ -20,7 +20,7 @@ go build -o linux-reGOn main.go
 ./linux-reGOn --help
 ```
 
-## [Usage]
+## Usage
 ```bash
 [Reconnaissance]
   -D, --dns                  DNS Records
@@ -52,6 +52,7 @@ go build -o linux-reGOn main.go
   -S, --shodan               Shodan Host IP Query
 
 [Identity Management]
+      --cookie-and-account   Cookie analysis and CMS account enumeration using wordlist
       --hidden-directories   Discover hidden directories using wordlist
 
 [Other]
@@ -65,7 +66,7 @@ go build -o linux-reGOn main.go
   -t, --threads              Number of concurrent threads (default: 50)
   -w, --wordlist             Wordlist file path
 ```
-## [Input]
+## Input
 For Linux:
 ```bash
 sudo chmod +x linux-reGOn
