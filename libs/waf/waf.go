@@ -473,6 +473,118 @@ func (w *WAFDetector) IsWAF() (bool, string) {
 	if w.isPuhuiWAF() {
 		return true, "Puhui (Puhui) WAF detected."
 	}
+	
+	if w.isQcloudWAF() {
+		return true, "Qcloud (Tencent Cloud) WAF detected."
+	}
+	
+	if w.isQiniuWAF() {
+		return true, "Qiniu (Qiniu CDN) WAF detected."
+	}
+	
+	if w.isQratorWAF() {
+		return true, "Qrator (Qrator) WAF detected."
+	}
+	
+	if w.isAppWallWAF() {
+		return true, "AppWall (Radware) WAF detected."
+	}
+	
+	if w.isReblazeWAF() {
+		return true, "Reblaze (Reblaze) WAF detected."
+	}
+	
+	if w.isRSFirewallWAF() {
+		return true, "RSFirewall (RSJoomla!) WAF detected."
+	}
+	
+	if w.isRequestValidationModeWAF() {
+		return true, "RequestValidationMode (Microsoft) WAF detected."
+	}
+	
+	if w.isSabreFirewallWAF() {
+		return true, "Sabre Firewall (Sabre) WAF detected."
+	}
+	
+	if w.isSafe3WebFirewallWAF() {
+		return true, "Safe3 Web Firewall (Safe3) WAF detected."
+	}
+	
+	if w.isSafedogWAF() {
+		return true, "Safedog (SafeDog) WAF detected."
+	}
+	
+	if w.isSafelineWAF() {
+		return true, "Safeline (Chaitin Tech.) WAF detected."
+	}
+	
+	if w.isSecKingWAF() {
+		return true, "SecKing (SecKing) WAF detected."
+	}
+	
+	if w.isSecuPressWPSecurityWAF() {
+		return true, "SecuPress WP Security (SecuPress) WAF detected."
+	}
+	
+	if w.isSecureEntryWAF() {
+		return true, "Secure Entry (United Security Providers) WAF detected."
+	}
+	
+	if w.isEeyeSecureIISWAF() {
+		return true, "eEye SecureIIS (BeyondTrust) WAF detected."
+	}
+	
+	if w.isSecureSphereWAF() {
+		return true, "SecureSphere (Imperva Inc.) WAF detected."
+	}
+	
+	if w.isSENginxWAF() {
+		return true, "SEnginx (Neusoft) WAF detected."
+	}
+	
+	if w.isServerDefenderVPWAF() {
+		return true, "ServerDefender VP (Port80 Software) WAF detected."
+	}
+	
+	if w.isShadowDaemonWAF() {
+		return true, "Shadow Daemon (Zecure) WAF detected."
+	}
+	
+	if w.isShieldonFirewallWAF() {
+		return true, "Shieldon Firewall (Shieldon.io) WAF detected."
+	}
+	
+	if w.isShieldSecurityWAF() {
+		return true, "Shield Security (One Dollar Plugin) WAF detected."
+	}
+	
+	if w.isSiteGroundWAF() {
+		return true, "SiteGround (SiteGround) WAF detected."
+	}
+	
+	if w.isSiteGuardWAF() {
+		return true, "SiteGuard (EG Secure Solutions Inc.) WAF detected."
+	}
+	
+	if w.isSitelockWAF() {
+		return true, "Sitelock (TrueShield) WAF detected."
+	}
+	
+	if w.isSonicWallWAF() {
+		return true, "SonicWall (Dell) WAF detected."
+	}
+	
+	if w.isUTMWebProtectionWAF() {
+		return true, "UTM Web Protection (Sophos) WAF detected."
+	}
+	
+	if w.isSquarespaceWAF() {
+		return true, "Squarespace (Squarespace) WAF detected."
+	}
+	
+	if w.isSquidProxyIDS() {
+		return true, "SquidProxy IDS (SquidProxy) WAF detected."
+	}
 
 	return false, ""
 }
@@ -1460,6 +1572,442 @@ func (w *WAFDetector) isPTApplicationFirewallWAF() bool {
 // isPuhuiWAF checks for Puhui (Puhui)
 func (w *WAFDetector) isPuhuiWAF() bool {
 	return w.matchHeader("Server", `(?i)Puhui[\-_]?WAF`)
+}
+
+// isQcloudWAF checks for Qcloud (Tencent Cloud)
+func (w *WAFDetector) isQcloudWAF() bool {
+	if !w.matchContent(`(?i)腾讯云Web应用防火墙`) {
+		return false
+	}
+	return w.statusCode == 403
+}
+
+// isQiniuWAF checks for Qiniu (Qiniu CDN)
+func (w *WAFDetector) isQiniuWAF() bool {
+	return w.matchHeader("X-Qiniu-CDN", `\d+`)
+}
+
+// isQratorWAF checks for Qrator (Qrator)
+func (w *WAFDetector) isQratorWAF() bool {
+	return w.matchHeader("Server", `(?i)QRATOR`)
+}
+
+// isAppWallWAF checks for AppWall (Radware)
+func (w *WAFDetector) isAppWallWAF() bool {
+	return w.checkAppWallSchema01() || w.checkAppWallSchema02()
+}
+
+func (w *WAFDetector) checkAppWallSchema01() bool {
+	if w.matchContent(`(?i)CloudWebSec\.radware\.com`) {
+		return true
+	}
+	if w.matchHeader("X-SL-CompState", `.+`) {
+		return true
+	}
+	return false
+}
+
+func (w *WAFDetector) checkAppWallSchema02() bool {
+	if !w.matchContent(`(?i)because we have detected unauthorized activity`) {
+		return false
+	}
+	if !w.matchContent(`(?i)<title>Unauthorized Request Blocked`) {
+		return false
+	}
+	if !w.matchContent(`(?i)if you believe that there has been some mistake`) {
+		return false
+	}
+	if !w.matchContent(`(?i)\?Subject=Security Page.{0,10}?Case Number`) {
+		return false
+	}
+	return true
+}
+
+// isReblazeWAF checks for Reblaze (Reblaze)
+func (w *WAFDetector) isReblazeWAF() bool {
+	return w.checkReblazeSchema01() || w.checkReblazeSchema02()
+}
+
+func (w *WAFDetector) checkReblazeSchema01() bool {
+	if w.matchCookie(`^rbzid`) {
+		return true
+	}
+	if w.matchHeader("Server", `(?i)Reblaze Secure Web Gateway`) {
+		return true
+	}
+	return false
+}
+
+func (w *WAFDetector) checkReblazeSchema02() bool {
+	if !w.matchContent(`(?i)current session has been terminated`) {
+		return false
+	}
+	if !w.matchContent(`(?i)do not hesitate to contact us`) {
+		return false
+	}
+	if !w.matchContent(`(?i)access denied \(\d{3}\)`) {
+		return false
+	}
+	return true
+}
+
+// isRSFirewallWAF checks for RSFirewall (RSJoomla!)
+func (w *WAFDetector) isRSFirewallWAF() bool {
+	return w.matchContent(`(?i)com_rsfirewall_(\d{3}_forbidden|event)?`)
+}
+
+// isRequestValidationModeWAF checks for RequestValidationMode (Microsoft)
+func (w *WAFDetector) isRequestValidationModeWAF() bool {
+	if w.matchContent(`(?i)Request Validation has detected a potentially dangerous client input`) {
+		return true
+	}
+	if w.matchContent(`(?i)ASP\.NET has detected data in the request`) {
+		return true
+	}
+	if w.matchContent(`(?i)HttpRequestValidationException`) {
+		return true
+	}
+	return false
+}
+
+// isSabreFirewallWAF checks for Sabre Firewall (Sabre)
+func (w *WAFDetector) isSabreFirewallWAF() bool {
+	if w.matchContent(`(?i)dxsupport\.sabre\.com`) {
+		return true
+	}
+	return w.checkSabreSchema01()
+}
+
+func (w *WAFDetector) checkSabreSchema01() bool {
+	if !w.matchContent(`(?i)<title>Application Firewall Error`) {
+		return false
+	}
+	if !w.matchContent(`(?i)add some important details to the email for us to investigate`) {
+		return false
+	}
+	return true
+}
+
+// isSafe3WebFirewallWAF checks for Safe3 Web Firewall (Safe3)
+func (w *WAFDetector) isSafe3WebFirewallWAF() bool {
+	if w.matchHeader("Server", `(?i)Safe3 Web Firewall`) {
+		return true
+	}
+	if w.matchHeader("X-Powered-By", `(?i)Safe3WAF/[\.0-9]+`) {
+		return true
+	}
+	if w.matchContent(`(?i)Safe3waf/[0-9\.]+`) {
+		return true
+	}
+	return false
+}
+
+// isSafedogWAF checks for Safedog (SafeDog)
+func (w *WAFDetector) isSafedogWAF() bool {
+	if w.matchCookie(`(?i)^safedog\-flow\-item=`) {
+		return true
+	}
+	if w.matchHeader("Server", `(?i)Safedog`) {
+		return true
+	}
+	if w.matchContent(`(?i)safedogsite/broswer_logo\.jpg`) {
+		return true
+	}
+	if w.matchContent(`(?i)404\.safedog\.cn/sitedog_stat\.html`) {
+		return true
+	}
+	if w.matchContent(`(?i)404\.safedog\.cn/images/safedogsite/head\.png`) {
+		return true
+	}
+	return false
+}
+
+// isSafelineWAF checks for Safeline (Chaitin Tech.)
+func (w *WAFDetector) isSafelineWAF() bool {
+	return w.matchContent(`(?i)safeline|<!\-\-\sevent id:`)
+}
+
+// isSecKingWAF checks for SecKing (SecKing)
+func (w *WAFDetector) isSecKingWAF() bool {
+	return w.matchHeader("Server", `(?i)secking(.?waf)?`)
+}
+
+// isSecuPressWPSecurityWAF checks for SecuPress WP Security (SecuPress)
+func (w *WAFDetector) isSecuPressWPSecurityWAF() bool {
+	return w.matchContent(`(?i)<(title|h\d{1})>SecuPress`)
+}
+
+// isSecureEntryWAF checks for Secure Entry (United Security Providers)
+func (w *WAFDetector) isSecureEntryWAF() bool {
+	return w.matchHeader("Server", `(?i)Secure Entry Server`)
+}
+
+// isEeyeSecureIISWAF checks for eEye SecureIIS (BeyondTrust)
+func (w *WAFDetector) isEeyeSecureIISWAF() bool {
+	if w.matchContent(`(?i)SecureIIS is an internet security application`) {
+		return true
+	}
+	if w.matchContent(`(?i)Download SecureIIS Personal Edition`) {
+		return true
+	}
+	if w.matchContent(`(?i)https?://www\.eeye\.com/Secure\-?IIS`) {
+		return true
+	}
+	return false
+}
+
+// isSecureSphereWAF checks for SecureSphere (Imperva Inc.)
+func (w *WAFDetector) isSecureSphereWAF() bool {
+	if !w.matchContent(`(?i)<(title|h2)>Error`) {
+		return false
+	}
+	if !w.matchContent(`(?i)The incident ID is`) {
+		return false
+	}
+	if !w.matchContent(`(?i)This page can't be displayed`) {
+		return false
+	}
+	if !w.matchContent(`(?i)Contact support for additional information`) {
+		return false
+	}
+	return true
+}
+
+// isSENginxWAF checks for SEnginx (Neusoft)
+func (w *WAFDetector) isSENginxWAF() bool {
+	return w.matchContent(`(?i)SENGINX\-ROBOT\-MITIGATION`)
+}
+
+// isServerDefenderVPWAF checks for ServerDefender VP (Port80 Software)
+func (w *WAFDetector) isServerDefenderVPWAF() bool {
+	return w.matchHeader("X-Pint", `(?i)p(ort\-)?80`)
+}
+
+// isShadowDaemonWAF checks for Shadow Daemon (Zecure)
+func (w *WAFDetector) isShadowDaemonWAF() bool {
+	if !w.matchContent(`(?i)<h\d{1}>\d{3}.forbidden<.h\d{1}>`) {
+		return false
+	}
+	if !w.matchContent(`(?i)request forbidden by administrative rules`) {
+		return false
+	}
+	return true
+}
+
+// isShieldonFirewallWAF checks for Shieldon Firewall (Shieldon.io)
+func (w *WAFDetector) isShieldonFirewallWAF() bool {
+	if w.checkShieldonSchema01() {
+		return true
+	}
+
+	if w.checkShieldonSchema02() {
+		return true
+	}
+
+	if w.checkShieldonSchema03() {
+		return true
+	}
+
+	// Check for X-Protected-By header with shieldon.io value (case-insensitive header name)
+	headerPattern := regexp.MustCompile(`(?i)^X-Protected-By$`)
+	valuePattern := regexp.MustCompile(`(?i)shieldon\.io`)
+	for headerName, values := range w.headers {
+		if headerPattern.MatchString(headerName) {
+			for _, value := range values {
+				if valuePattern.MatchString(value) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func (w *WAFDetector) checkShieldonSchema01() bool {
+	if !w.matchContent(`(?i)Please solve CAPTCHA`) {
+		return false
+	}
+
+	if !w.matchContent(`(?i)shieldon_captcha`) {
+		return false
+	}
+
+	if !w.matchContent(`(?i)Unusual behavior detected`) {
+		return false
+	}
+
+	if !w.matchContent(`(?i)status-user-info`) {
+		return false
+	}
+
+	return true
+}
+
+func (w *WAFDetector) checkShieldonSchema02() bool {
+	if !w.matchContent(`(?i)Access denied`) {
+		return false
+	}
+
+	if !w.matchContent(`(?i)The IP address you are using has been blocked\.`) {
+		return false
+	}
+
+	if !w.matchContent(`(?i)status-user-info`) {
+		return false
+	}
+
+	return true
+}
+
+func (w *WAFDetector) checkShieldonSchema03() bool {
+	if !w.matchContent(`(?i)Please line up`) {
+		return false
+	}
+
+	if !w.matchContent(`(?i)This page is limiting the number of people online\. Please wait a moment\.`) {
+		return false
+	}
+
+	return true
+}
+
+// isShieldSecurityWAF checks for Shield Security (One Dollar Plugin)
+func (w *WAFDetector) isShieldSecurityWAF() bool {
+	if w.matchContent(`(?i)You were blocked by the Shield`) {
+		return true
+	}
+	if w.matchContent(`(?i)remaining transgression\(s\) against this site`) {
+		return true
+	}
+	if w.matchContent(`(?i)Something in the URL.{0,5}?Form or Cookie data wasn't appropriate`) {
+		return true
+	}
+	return false
+}
+
+// isSiteGroundWAF checks for SiteGround (SiteGround)
+func (w *WAFDetector) isSiteGroundWAF() bool {
+	if w.matchContent(`(?i)Our system thinks you might be a robot!`) {
+		return true
+	}
+	if w.matchContent(`(?i)access is restricted due to a security rule`) {
+		return true
+	}
+	return false
+}
+
+// isSiteGuardWAF checks for SiteGuard (EG Secure Solutions Inc.)
+func (w *WAFDetector) isSiteGuardWAF() bool {
+	if w.matchContent(`(?i)Powered by SiteGuard`) {
+		return true
+	}
+	if w.matchContent(`(?i)The server refuse to browse the page`) {
+		return true
+	}
+	return false
+}
+
+// isSitelockWAF checks for Sitelock (TrueShield)
+func (w *WAFDetector) isSitelockWAF() bool {
+	if w.matchContent(`(?i)SiteLock will remember you`) {
+		return true
+	}
+	if w.matchContent(`(?i)Sitelock is leader in Business Website Security Services`) {
+		return true
+	}
+	if w.matchContent(`(?i)sitelock[_\-]shield([_\-]logo|[\-_]badge)?`) {
+		return true
+	}
+	if w.matchContent(`(?i)SiteLock incident ID`) {
+		return true
+	}
+	return false
+}
+
+// isSonicWallWAF checks for SonicWall (Dell)
+func (w *WAFDetector) isSonicWallWAF() bool {
+	if w.matchHeader("Server", `(?i)SonicWALL`) {
+		return true
+	}
+	if w.matchContent(`(?i)<(title|h\d{1})>Web Site Blocked`) {
+		return true
+	}
+	if w.matchContent(`(?i)\+?nsa_banner`) {
+		return true
+	}
+	return false
+}
+
+// isUTMWebProtectionWAF checks for UTM Web Protection (Sophos)
+func (w *WAFDetector) isUTMWebProtectionWAF() bool {
+	return w.checkUTMWebProtectionSchema01() || w.checkUTMWebProtectionSchema02()
+}
+
+func (w *WAFDetector) checkUTMWebProtectionSchema01() bool {
+	if w.matchContent(`(?i)www\.sophos\.com`) {
+		return true
+	}
+	if w.matchContent(`(?i)Powered by.?(Sophos)? UTM Web Protection`) {
+		return true
+	}
+	return false
+}
+
+func (w *WAFDetector) checkUTMWebProtectionSchema02() bool {
+	if !w.matchContent(`(?i)<title>Access to the requested URL was blocked`) {
+		return false
+	}
+	if !w.matchContent(`(?i)Access to the requested URL was blocked`) {
+		return false
+	}
+	if !w.matchContent(`(?i)incident was logged with the following log identifier`) {
+		return false
+	}
+	if !w.matchContent(`(?i)Inbound Anomaly Score exceeded`) {
+		return false
+	}
+	if !w.matchContent(`(?i)Your cache administrator is`) {
+		return false
+	}
+	return true
+}
+
+// isSquarespaceWAF checks for Squarespace (Squarespace)
+func (w *WAFDetector) isSquarespaceWAF() bool {
+	if w.matchHeader("Server", `(?i)Squarespace`) {
+		return true
+	}
+	if w.matchCookie(`^SS_ANALYTICS_ID=`) {
+		return true
+	}
+	if w.matchCookie(`^SS_MATTR=`) {
+		return true
+	}
+	if w.matchCookie(`^SS_MID=`) {
+		return true
+	}
+	if w.matchCookie(`^SS_CVT=`) {
+		return true
+	}
+	if w.matchContent(`(?i)status\.squarespace\.com`) {
+		return true
+	}
+	if w.matchContent(`(?i)BRICK\-\d{2}`) {
+		return true
+	}
+	return false
+}
+
+// isSquidProxyIDS checks for SquidProxy IDS (SquidProxy)
+func (w *WAFDetector) isSquidProxyIDS() bool {
+	if !w.matchHeader("Server", `(?i)squid(/[0-9\.]+)?`) {
+		return false
+	}
+	if !w.matchContent(`(?i)Access control configuration prevents your request`) {
+		return false
+	}
+	return true
 }
 
 // matchHeader checks if a header matches a value using regex
