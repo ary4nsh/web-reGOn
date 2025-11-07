@@ -398,7 +398,7 @@ func main() {
 		groups[group] = append(groups[group], line)
 	})
 
-	order := []string{"Reconnaissance", "Misconfiguration", "Open Source Intelligence", "Identity Management", "Other"}
+	order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Other"}
 	for _, group := range order {
 		if lines, ok := groups[group]; ok {
 			fmt.Printf("[%s]\n", group)
