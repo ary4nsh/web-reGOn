@@ -30,6 +30,15 @@ go build -o linux-reGOn main.go
       --whois                Query for Whois records
       --zone-transfer        Perform zone transfer on a domain
 
+[Open Source Intelligence]
+      --combined-enrichment  Company and Email enrichment information
+      --company-enrichment   Company enrichment information
+      --domain-search        Domain search for email addresses
+      --email-enrichment     Email enrichment information
+      --email-finder         Find email address from domain and person names
+      --email-verifier       Verify email address deliverability
+  -S, --shodan               Shodan Host IP Query
+
 [Misconfiguration]
       --csp                  Analyse Content-Security-Policy header
       --ftp                  Scan FTP server
@@ -41,15 +50,6 @@ go build -o linux-reGOn main.go
       --snmp-enumshares      Enumerate SNMP Windows SMB Share
       --snmp-enumusers       Enumerate SNMP Windows users
       --snmp-walk            Perform SNMP walk on IP address
-
-[Open Source Intelligence]
-      --combined-enrichment  Company and Email enrichment information
-      --company-enrichment   Company enrichment information
-      --domain-search        Domain search for email addresses
-      --email-enrichment     Email enrichment information
-      --email-finder         Find email address from domain and person names
-      --email-verifier       Verify email address deliverability
-  -S, --shodan               Shodan Host IP Query
 
 [Identity Management]
       --cookie-and-account   Cookie analysis and CMS account enumeration using wordlist
