@@ -2,7 +2,7 @@
 This is a simple web reconnaissance and security testing tool built in Go for web application security assessment
 
 ## Requirements
-- Go 1.19 or higher [go](https://go.dev/doc/install)
+- [Go](https://go.dev/doc/install) 1.19 or higher
 
 ## Build from source
 ```
