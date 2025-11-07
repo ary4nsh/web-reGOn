@@ -585,6 +585,102 @@ func (w *WAFDetector) IsWAF() (bool, string) {
 	if w.isSquidProxyIDS() {
 		return true, "SquidProxy IDS (SquidProxy) WAF detected."
 	}
+	
+	if w.isStackPathWAF() {
+		return true, "StackPath (StackPath) WAF detected."
+	}
+	
+	if w.isSucuriCloudProxyWAF() {
+		return true, "Sucuri CloudProxy (Sucuri Inc.) WAF detected."
+	}
+
+	if w.isTencentCloudWAF() {
+		return true, "Tencent Cloud Firewall (Tencent Technologies) WAF detected."
+	}
+	
+	if w.isTerosWAF() {
+		return true, "Teros (Citrix Systems) WAF detected."
+	}
+	
+	if w.isThreatXWAF() {
+		return true, "ThreatX (A10 Networks) WAF detected."
+	}
+	
+	if w.isTransIPWebFirewallWAF() {
+		return true, "TransIP Web Firewall (TransIP) WAF detected."
+	}
+	
+	if w.isUEWafWAF() {
+		return true, "UEWaf (UCloud) WAF detected."
+	}
+	
+	if w.isURLMasterSecurityCheckWAF() {
+		return true, "URLMaster SecurityCheck (iFinity/DotNetNuke) WAF detected."
+	}
+	
+	if w.isURLScanWAF() {
+		return true, "URLScan (Microsoft) WAF detected."
+	}
+	
+	if w.isVaritiWAF() {
+		return true, "Variti (Variti) WAF detected."
+	}
+	
+	if w.isVarnishOWASPWAF() {
+		return true, "Varnish (OWASP) WAF detected."
+	}
+	
+	if w.isViettelWAF() {
+		return true, "Viettel (Cloudrity) WAF detected."
+	}
+	
+	if w.isVirusDieWAF() {
+		return true, "VirusDie (VirusDie LLC) WAF detected."
+	}
+	
+	if w.isWallarmWAF() {
+		return true, "Wallarm (Wallarm Inc.) WAF detected."
+	}
+	
+	if w.isWatchGuardWAF() {
+		return true, "WatchGuard (WatchGuard Technologies) WAF detected."
+	}
+	
+	if w.isWebARXWAF() {
+		return true, "WebARX (WebARX Security Solutions) WAF detected."
+	}
+	
+	if w.isWebKnightWAF() {
+		return true, "WebKnight (AQTRONIX) WAF detected."
+	}
+	
+	if w.isWebLandWAF() {
+		return true, "WebLand (WebLand) WAF detected."
+	}
+	
+	if w.isRayWAF() {
+		return true, "RayWAF (WebRay Solutions) WAF detected."
+	}
+	
+	if w.isWebSEALWAF() {
+		return true, "WebSEAL (IBM) WAF detected."
+	}
+	
+	if w.isWebTotemWAF() {
+		return true, "WebTotem (WebTotem) WAF detected."
+	}
+	
+	if w.isWest263CDNWAF() {
+		return true, "West263 CDN (West263CDN) WAF detected."
+	}
+	
+	if w.isWordfenceWAF() {
+		return true, "Wordfence (Defiant) WAF detected."
+	}
+	
+	if w.isWpmudevWAF() {
+		return true, "wpmudev WAF (Incsub) WAF detected."
+	}
 
 	return false, ""
 }
@@ -2008,6 +2104,206 @@ func (w *WAFDetector) isSquidProxyIDS() bool {
 		return false
 	}
 	return true
+}
+
+// isStackPathWAF checks for StackPath
+func (w *WAFDetector) isStackPathWAF() bool {
+	return w.checkStackPathSchema01() || w.checkStackPathSchema02()
+}
+
+func (w *WAFDetector) checkStackPathSchema01() bool {
+	return w.matchContent(`<title>StackPath[^<]+</title>`) ||
+		w.matchContent(`Protected by <a href="https?:\/\/(?:www\.)?stackpath\.com\/"[^>]*>StackPath`)
+}
+
+func (w *WAFDetector) checkStackPathSchema02() bool {
+	return w.matchContent(`is using a security service for protection against online attacks`) &&
+		w.matchContent(`An action has triggered the service and blocked your request`)
+}
+
+// isSucuriCloudProxyWAF checks for Sucuri CloudProxy
+func (w *WAFDetector) isSucuriCloudProxyWAF() bool {
+	return w.matchHeader("X-Sucuri-ID", `.+?`) ||
+		w.matchHeader("X-Sucuri-Cache", `.+?`) ||
+		w.matchHeader("Server", `Sucuri(\-Cloudproxy)?`) ||
+		w.matchHeader("X-Sucuri-Block", `.+?`) ||
+		w.matchContent(`Access Denied.{0,6}?Sucuri Website Firewall`) ||
+		w.matchContent(`<title>Sucuri WebSite Firewall.{0,6}?(CloudProxy)?.{0,6}?Access Denied`) ||
+		w.matchContent(`sucuri\.net/privacy\-policy`) ||
+		w.matchContent(`cdn\.sucuri\.net/sucuri[-_]firewall[-_]block\.css`) ||
+		w.matchContent(`cloudproxy@sucuri\.net`)
+}
+
+// isTencentCloudWAF checks for Tencent Cloud Firewall
+func (w *WAFDetector) isTencentCloudWAF() bool {
+	return w.matchContent(`waf\.tencent\-?cloud\.com/`)
+}
+
+// isTerosWAF checks for Teros (Citrix Systems)
+func (w *WAFDetector) isTerosWAF() bool {
+	return w.matchCookie(`^st8id=`)
+}
+
+// isThreatXWAF checks for ThreatX (A10 Networks)
+func (w *WAFDetector) isThreatXWAF() bool {
+	return w.matchHeader("X-Request-Id", `.*`) &&
+		w.matchContent(`^Forbidden - ID: ([a-fA-F0-9]{32})$`) &&
+		w.statusCode == 403
+}
+
+// isTransIPWebFirewallWAF checks for TransIP Web Firewall
+func (w *WAFDetector) isTransIPWebFirewallWAF() bool {
+	return w.matchHeader("X-TransIP-Backend", `.+`) ||
+		w.matchHeader("X-TransIP-Balancer", `.+`)
+}
+
+// isUEWafWAF checks for UEWaf (UCloud)
+func (w *WAFDetector) isUEWafWAF() bool {
+	return w.matchHeader("Server", `uewaf(/[0-9\.]+)?`) ||
+		w.matchContent(`/uewaf_deny_pages/default/img/`) ||
+		w.matchContent(`ucloud\.cn`)
+}
+
+// isURLMasterSecurityCheckWAF checks for URLMaster SecurityCheck
+func (w *WAFDetector) isURLMasterSecurityCheckWAF() bool {
+	return w.checkURLMasterSchema01() || w.checkURLMasterSchema02()
+}
+
+func (w *WAFDetector) checkURLMasterSchema01() bool {
+	return w.matchHeader("X-UrlMaster-Debug", `.+`) ||
+		w.matchHeader("X-UrlMaster-Ex", `.+`)
+}
+
+func (w *WAFDetector) checkURLMasterSchema02() bool {
+	return w.matchContent(`Ur[li]RewriteModule`) &&
+		w.matchContent(`SecurityCheck`)
+}
+
+// isURLScanWAF checks for URLScan (Microsoft)
+func (w *WAFDetector) isURLScanWAF() bool {
+	return w.matchContent(`Rejected[-_]By[_-]UrlScan`) ||
+		w.matchContent(`A custom filter or module.{0,4}?such as URLScan`)
+}
+
+// isVaritiWAF checks for Variti
+func (w *WAFDetector) isVaritiWAF() bool {
+	return w.matchHeader("Server", `Variti(?:\/[a-z0-9\.\-]+)?`)
+}
+
+// isVarnishOWASPWAF checks for Varnish (OWASP)
+func (w *WAFDetector) isVarnishOWASPWAF() bool {
+	return w.matchContent(`Request rejected by xVarnish\-WAF`)
+}
+
+// isViettelWAF checks for Viettel (Cloudrity)
+func (w *WAFDetector) isViettelWAF() bool {
+	return w.matchContent(`Access Denied.{0,10}?Viettel WAF`) ||
+		w.matchContent(`cloudrity\.com\.(vn)?/`) ||
+		w.matchContent(`Viettel WAF System`)
+}
+
+// isVirusDieWAF checks for VirusDie (VirusDie LLC)
+func (w *WAFDetector) isVirusDieWAF() bool {
+	return w.matchContent(`cdn\.virusdie\.ru/splash/firewallstop\.png`) ||
+		w.matchContent(`copy.{0,10}?Virusdie\.ru`)
+}
+
+// isWallarmWAF checks for Wallarm (Wallarm Inc.)
+func (w *WAFDetector) isWallarmWAF() bool {
+	return w.matchHeader("Server", `nginx[\-_]wallarm`)
+}
+
+// isWatchGuardWAF checks for WatchGuard (WatchGuard Technologies)
+func (w *WAFDetector) isWatchGuardWAF() bool {
+	return w.matchHeader("Server", "WatchGuard") ||
+		w.matchContent(`Request denied by WatchGuard Firewall`) ||
+		w.matchContent(`WatchGuard Technologies Inc\.`)
+}
+
+// isWebARXWAF checks for WebARX (WebARX Security Solutions)
+func (w *WAFDetector) isWebARXWAF() bool {
+	return w.matchContent(`WebARX.{0,10}?Web Application Firewall`) ||
+		w.matchContent(`www\.webarxsecurity\.com`) ||
+		w.matchContent(`/wp\-content/plugins/webarx/includes/`)
+}
+
+// isWebKnightWAF checks for WebKnight (AQTRONIX)
+func (w *WAFDetector) isWebKnightWAF() bool {
+	return w.checkWebKnightSchema01() ||
+		w.checkWebKnightSchema02() ||
+		w.checkWebKnightSchema03()
+}
+
+func (w *WAFDetector) checkWebKnightSchema01() bool {
+	return w.statusCode == 999 && strings.Contains(w.statusText, "No Hacking")
+}
+
+func (w *WAFDetector) checkWebKnightSchema02() bool {
+	return w.statusCode == 404 && strings.Contains(w.statusText, "Hack Not Found")
+}
+
+func (w *WAFDetector) checkWebKnightSchema03() bool {
+	return w.matchContent(`WebKnight Application Firewall Alert`) ||
+		w.matchContent(`What is webknight\?`) ||
+		w.matchContent(`AQTRONIX WebKnight is an application firewall`) ||
+		w.matchContent(`WebKnight will take over and protect`) ||
+		w.matchContent(`aqtronix\.com/WebKnight`) ||
+		w.matchContent(`AQTRONIX.{0,10}?WebKnight`)
+}
+
+// isWebLandWAF checks for WebLand
+func (w *WAFDetector) isWebLandWAF() bool {
+	return w.matchHeader("Server", `protected by webland`)
+}
+
+// isRayWAF checks for RayWAF (WebRay Solutions)
+func (w *WAFDetector) isRayWAF() bool {
+	return w.matchHeader("Server", `WebRay\-WAF`) ||
+		w.matchHeader("DrivedBy", `RaySrv\.RayEng/[0-9\.]+?`)
+}
+
+// isWebSEALWAF checks for WebSEAL (IBM)
+func (w *WAFDetector) isWebSEALWAF() bool {
+	return w.matchHeader("Server", "WebSEAL") ||
+		w.matchContent(`This is a WebSEAL error message template file`) ||
+		w.matchContent(`WebSEAL server received an invalid HTTP request`)
+}
+
+// isWebTotemWAF checks for WebTotem
+func (w *WAFDetector) isWebTotemWAF() bool {
+	return w.matchContent(`The current request was blocked.{0,8}?>WebTotem`)
+}
+
+// isWest263CDNWAF checks for West263 CDN (West263CDN)
+func (w *WAFDetector) isWest263CDNWAF() bool {
+	return w.matchHeader("X-Cache", `WS?T263CDN`)
+}
+
+// isWordfenceWAF checks for Wordfence (Defiant)
+func (w *WAFDetector) isWordfenceWAF() bool {
+	return w.matchHeader("Server", `wf[_\-]?WAF`) ||
+		w.matchContent(`Generated by Wordfence`) ||
+		w.matchContent(`broke one of (the )?Wordfence (advanced )?blocking rules`) ||
+		w.matchContent(`/plugins/wordfence`)
+}
+
+// isWpmudevWAF checks for wpmudev WAF (Incsub)
+func (w *WAFDetector) isWpmudevWAF() bool {
+	return w.checkWpmudevSchema01() || w.checkWpmudevSchema02()
+}
+
+func (w *WAFDetector) checkWpmudevSchema01() bool {
+	return w.matchContent(`href="http(s)?.\/\/wpmudev.com\/.{0,15}?`) &&
+		w.matchContent(`Click on the Logs tab, then the WAF Log.`) &&
+		w.matchContent(`Choose your site from the list`) &&
+		w.statusCode == 403
+}
+
+func (w *WAFDetector) checkWpmudevSchema02() bool {
+	return w.matchContent(`<h1>Whoops, this request has been blocked!`) &&
+		w.matchContent(`This request has been deemed suspicious`) &&
+		w.matchContent(`possible attack on our servers.`) &&
+		w.statusCode == 403
 }
 
 // matchHeader checks if a header matches a value using regex
