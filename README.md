@@ -14,7 +14,7 @@ cd web-reGOn
 go mod download
 
 # Build the binary
-go build -o linux-reGOn main.go
+go build -o linux-reGOn
 
 # Run the tool
 ./linux-reGOn --help
