@@ -681,6 +681,42 @@ func (w *WAFDetector) IsWAF() (bool, string) {
 	if w.isWpmudevWAF() {
 		return true, "wpmudev WAF (Incsub) WAF detected."
 	}
+	
+	if w.isWTSWAF() {
+		return true, "WTS-WAF (WTS) WAF detected."
+	}
+	
+	if w.is360WangZhanBaoWAF() {
+		return true, "360WangZhanBao (360 Technologies) WAF detected."
+	}
+	
+	if w.isXLabsSecurityWAF() {
+		return true, "XLabs Security WAF (XLabs) WAF detected."
+	}
+
+	if w.isXuanwudunWAF() {
+		return true, "Xuanwudun (Xuanwudun) WAF detected."
+	}
+	
+	if w.isYundunWAF() {
+		return true, "Yundun (Yundun) WAF detected."
+	}
+	
+	if w.isYunsuoWAF() {
+		return true, "Yunsuo (Yunsuo) WAF detected."
+	}
+	
+	if w.isYXLinkWAF() {
+		return true, "YXLink (YxLink Technologies) WAF detected."
+	}
+	
+	if w.isZenedgeWAF() {
+		return true, "Zenedge (Zenedge) WAF detected."
+	}
+	
+	if w.isZScalerWAF() {
+		return true, "ZScaler (Accenture) WAF detected."
+	}
 
 	return false, ""
 }
@@ -2304,6 +2340,76 @@ func (w *WAFDetector) checkWpmudevSchema02() bool {
 		w.matchContent(`This request has been deemed suspicious`) &&
 		w.matchContent(`possible attack on our servers.`) &&
 		w.statusCode == 403
+}
+
+// isWTSWAF checks for WTS-WAF (WTS)
+func (w *WAFDetector) isWTSWAF() bool {
+	return w.matchHeader("Server", `wts/[0-9\.]+?`) ||
+		w.matchContent(`<(title|h\d{1})>WTS\-WAF`)
+}
+
+// is360WangZhanBaoWAF checks for 360WangZhanBao (360 Technologies)
+func (w *WAFDetector) is360WangZhanBaoWAF() bool {
+	return w.matchHeader("Server", `qianxin\-waf`) ||
+		w.matchHeader("WZWS-Ray", `.+?`) ||
+		w.matchHeader("X-Powered-By-360WZB", `.+?`) ||
+		w.matchContent(`wzws\-waf\-cgi/`) ||
+		w.matchContent(`wangshan\.360\.cn`) ||
+		w.statusCode == 493
+}
+
+// isXLabsSecurityWAF checks for XLabs Security WAF (XLabs)
+func (w *WAFDetector) isXLabsSecurityWAF() bool {
+	return w.matchHeader("X-CDN", `XLabs Security`) ||
+		w.matchHeader("Secured", `^By XLabs Security`) ||
+		w.matchHeader("Server", `XLabs[-_]?.?WAF`)
+}
+
+// isXuanwudunWAF checks for Xuanwudun
+func (w *WAFDetector) isXuanwudunWAF() bool {
+	return w.matchContent(`admin\.dbappwaf\.cn/(index\.php/Admin/ClientMisinform/)?`) ||
+		w.matchContent(`class=.(db[\-_]?)?waf(.)?([\-_]?row)?>`)
+}
+
+// isYundunWAF checks for Yundun
+func (w *WAFDetector) isYundunWAF() bool {
+	return w.matchHeader("Server", "YUNDUN") ||
+		w.matchHeader("X-Cache", "YUNDUN") ||
+		w.matchCookie(`^yd_cookie=`) ||
+		w.matchContent(`Blocked by YUNDUN Cloud WAF`) ||
+		w.matchContent(`yundun\.com/yd[-_]http[_-]error/`) ||
+		w.matchContent(`www\.yundun\.com/(static/js/fingerprint\d{1}?\.js)?`)
+}
+
+// isYunsuoWAF checks for Yunsuo
+func (w *WAFDetector) isYunsuoWAF() bool {
+	return w.matchCookie(`^yunsuo_session=`) ||
+		w.matchContent(`class="yunsuologo"`)
+}
+
+// isYXLinkWAF checks for YXLink (YxLink Technologies)
+func (w *WAFDetector) isYXLinkWAF() bool {
+	return w.matchCookie(`^yx_ci_session=`) ||
+		w.matchCookie(`^yx_language=`) ||
+		w.matchHeader("Server", `Yxlink([\-_]?WAF)?`)
+}
+
+// isZenedgeWAF checks for Zenedge
+func (w *WAFDetector) isZenedgeWAF() bool {
+	return w.matchHeader("Server", "ZENEDGE") ||
+		w.matchHeader("X-Zen-Fury", `.+?`) ||
+		w.matchContent(`/ __zenedge/`)
+}
+
+// isZScalerWAF checks for ZScaler (Accenture)
+func (w *WAFDetector) isZScalerWAF() bool {
+	return w.matchHeader("Server", `ZScaler`) ||
+		w.matchContent(`Access Denied.{0,10}?Accenture Policy`) ||
+		w.matchContent(`policies\.accenture\.com`) ||
+		w.matchContent(`login\.zscloud\.net/img_logo_new1\.png`) ||
+		w.matchContent(`Zscaler to protect you from internet threats`) ||
+		w.matchContent(`Internet Security by ZScaler`) ||
+		w.matchContent(`Accenture.{0,10}?webfilters indicate that the site likely contains`)
 }
 
 // matchHeader checks if a header matches a value using regex
