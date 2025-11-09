@@ -3,6 +3,7 @@ package waf
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"regexp"
 	"strings"
@@ -2435,13 +2436,23 @@ func (w *WAFDetector) matchContent(pattern string) bool {
 
 // WafDetect runs the full WAF-check pipeline and returns
 // (true, "<product name>") when a WAF is recognised.
-func WafDetect(url string) (bool, string) {
-	// Ensure scheme
-	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		url = "https://" + url
+func WafDetect(raw string, port string) (bool, string) {
+	if port == "" {
+		port = "443"
 	}
-	d := NewWAFDetector(url)
+	raw = strings.TrimPrefix(raw, "http://")
+	raw = strings.TrimPrefix(raw, "https://")
+
+	var finalURL string
+	if port == "443" {
+		finalURL = "https://" + raw
+	} else {
+		finalURL = "http://" + net.JoinHostPort(raw, port)
+	}
+
+	d := NewWAFDetector(finalURL)
 	if err := d.DoRequest(); err != nil {
+		fmt.Println(err)
 		return false, ""
 	}
 	return d.IsWAF()
