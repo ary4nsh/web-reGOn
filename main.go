@@ -50,8 +50,13 @@ type Flags struct {
 	zoneTransfer	    bool
 	whois		    bool
 	waf	 	    bool
+	
 	hiddenDirectories   bool
 	cookieAndAccount    bool
+	statusCodeEnum	    bool
+	errorMessageEnum    bool
+	nonexistentUserEnum bool
+	
 	apiKey		    string
 	domain              string
 	firstName           string
@@ -59,6 +64,8 @@ type Flags struct {
 	email		    string
 	port		    string
 	wordlist            string
+	userlist	    string
+	passlist	    string
 	threads             int
 }
 
@@ -89,8 +96,11 @@ var flagGroups = map[string]string{
 	"csp":                "Misconfiguration",
 	"path-confusion":     "Misconfiguration",
 	
-	"hidden-directories": "Identity Management",
-	"cookie-and-account": "Identity Management",
+	"hidden-directories":    "Identity Management",
+	"cookie-and-account":    "Identity Management",
+	"status-code-enum":      "Identity Management",
+	"error-message-enum":    "Identity Management",
+	"nonexistent-user-enum": "Identity Management",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -101,7 +111,8 @@ func anyFlagSet(flags Flags) bool {
 		flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 		flags.memcachedScan || flags.dnsDumpster || flags.zoneTransfer ||
 		flags.whois || flags.cspHeader || flags.riaHeader || flags.pathConfusion ||
-		flags.waf || flags.hiddenDirectories || flags.cookieAndAccount
+		flags.waf || flags.hiddenDirectories || flags.cookieAndAccount ||
+		flags.statusCodeEnum || flags.errorMessageEnum || flags.nonexistentUserEnum
 }
 
 func main() {
@@ -209,6 +220,27 @@ func main() {
 					fmt.Println("Please provide dnsdumpster.com api key and URL (--api-key string)")
 				}
 			}
+			
+			if flags.statusCodeEnum {
+				if flags.userlist == "" || flags.passlist == "" {
+					fmt.Println("Please provide userlist and passlist paths when using --status-code-enum (--userlist string --passlist string)")
+					return
+				}
+			}
+			
+			if flags.errorMessageEnum {
+				if flags.userlist == "" || flags.passlist == "" {
+					fmt.Println("Please provide userlist and passlist paths when using --error-message-enum (--userlist string --passlist string)")
+					return
+				}
+			}
+			
+			if flags.nonexistentUserEnum {
+				if flags.userlist == "" {
+					fmt.Println("Please provide userlist path when using --nonexistent-user-enum (--userlist string)")
+					return
+				}
+			}
 
 			// Check if URL is provided when at least one flag is set
 			if len(args) == 0 {
@@ -251,7 +283,7 @@ func main() {
 					}()
 				},
 				flags.waf: func() {
-					found, name := waf.WafDetect(URL)
+					found, name := waf.WafDetect(URL, flags.port)
 					if found {
 						fmt.Printf("WAF detected: %s\n", name)
 					} else {
@@ -325,6 +357,18 @@ func main() {
 					// Execute Whois secuentially
 					libs.Whois(URL)
 				},
+				flags.statusCodeEnum: func() {
+					// Execute login fuzzer
+					identitymanagement.StatusCodeEnum(URL, flags.userlist, flags.passlist, flags.threads)
+				},
+				flags.errorMessageEnum: func() {
+					// Execute error message enumeration
+					identitymanagement.ErrorMessageEnum(URL, flags.userlist, flags.passlist, flags.threads)
+				},
+				flags.nonexistentUserEnum: func() {
+					// Execute nonexistent user enumeration
+					identitymanagement.NonexistentUserEnum(URL, flags.userlist, flags.threads)
+				},
 			}
 
 			for flag, function := range functions {
@@ -344,14 +388,15 @@ func main() {
 	// Allow flags to be specified anywhere in the command line
 	rootCmd.Flags().SetInterspersed(true)
 
+	// Reconnaissance
 	rootCmd.Flags().BoolVarP(&flags.dnsFlag, "dns", "D", false, "DNS Records")
 	rootCmd.Flags().BoolVarP(&flags.httpFlag, "http", "H", false, "HTTP Status Code")
-	rootCmd.Flags().BoolVarP(&flags.httpOptions, "http-options", "", false, "HTTP OPTIONS Method Check")
-	rootCmd.Flags().BoolVarP(&flags.hstsHeader, "hsts-header", "", false, "Check HSTS and security headers")
-	rootCmd.Flags().BoolVarP(&flags.cspHeader, "csp", "", false, "Analyse Content-Security-Policy header")
-	rootCmd.Flags().BoolVarP(&flags.pathConfusion, "path-confusion", "", false, "Path Confusion testing with wordlist and optional threads")
-
-	rootCmd.Flags().BoolVarP(&flags.riaHeader, "ria", "", false, "Check crossdomain.xml and clientaccesspolicy.xml")
+	rootCmd.Flags().BoolVarP(&flags.dnsDumpster, "dns-dumpster", "", false, "Find & look up DNS records from dnsdumpster.com")
+	rootCmd.Flags().BoolVarP(&flags.zoneTransfer, "zone-transfer", "", false, "Perform zone transfer on a domain")
+	rootCmd.Flags().BoolVarP(&flags.whois, "whois", "", false, "Query for Whois records")
+	rootCmd.Flags().BoolVar(&flags.waf, "waf", false, "Detect Web Application Firewall")
+	
+	// Open Source Intelligence
 	rootCmd.Flags().BoolVarP(&flags.shodanFlag, "shodan", "S", false, "Shodan Host IP Query")
 	rootCmd.Flags().BoolVarP(&flags.combinedEnrichment, "combined-enrichment", "", false, "Company and Email enrichment information")
 	rootCmd.Flags().BoolVarP(&flags.companyEnrichment, "company-enrichment", "", false, "Company enrichment information")
@@ -359,20 +404,32 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.emailEnrichment, "email-enrichment", "", false, "Email enrichment information")
 	rootCmd.Flags().BoolVarP(&flags.emailFinder, "email-finder", "", false, "Find email address from domain and person names")
 	rootCmd.Flags().BoolVarP(&flags.emailVerifier, "email-verifier", "", false, "Verify email address deliverability")
+	
+	// Misconfiguration
+	rootCmd.Flags().BoolVarP(&flags.httpOptions, "http-options", "", false, "HTTP OPTIONS Method Check")
+	rootCmd.Flags().BoolVarP(&flags.hstsHeader, "hsts-header", "", false, "Check HSTS and security headers")
+	rootCmd.Flags().BoolVarP(&flags.cspHeader, "csp", "", false, "Analyse Content-Security-Policy header")
+	rootCmd.Flags().BoolVarP(&flags.pathConfusion, "path-confusion", "", false, "Path Confusion testing with wordlist and optional threads")
+	rootCmd.Flags().BoolVarP(&flags.riaHeader, "ria", "", false, "Check crossdomain.xml and clientaccesspolicy.xml")
 	rootCmd.Flags().BoolVarP(&flags.snmpWalk, "snmp-walk", "", false, "Perform SNMP walk on IP address")
 	rootCmd.Flags().BoolVarP(&flags.snmpEnumUsers, "snmp-enumusers", "", false, "Enumerate SNMP Windows users")
 	rootCmd.Flags().BoolVarP(&flags.snmpEnumShares, "snmp-enumshares", "", false, "Enumerate SNMP Windows SMB Share")
 	rootCmd.Flags().BoolVarP(&flags.ftpScan, "ftp", "", false, "Scan FTP server")
 	rootCmd.Flags().BoolVarP(&flags.memcachedScan, "memcached", "", false, "Scan Memcached server")
-	rootCmd.Flags().BoolVarP(&flags.dnsDumpster, "dns-dumpster", "", false, "Find & look up DNS records from dnsdumpster.com")
-	rootCmd.Flags().BoolVarP(&flags.zoneTransfer, "zone-transfer", "", false, "Perform zone transfer on a domain")
-	rootCmd.Flags().BoolVarP(&flags.whois, "whois", "", false, "Query for Whois records")
-	rootCmd.Flags().BoolVar(&flags.waf, "waf", false, "Detect Web Application Firewall")
+	
+	// Identity Management
 	rootCmd.Flags().BoolVarP(&flags.hiddenDirectories, "hidden-directories", "", false, "Discover hidden directories using wordlist")
+	rootCmd.Flags().BoolVarP(&flags.statusCodeEnum, "status-code-enum", "", false, "Enumerate users via brute forcing login forms with username and password lists by status code")
+	rootCmd.Flags().BoolVarP(&flags.errorMessageEnum, "error-message-enum", "", false, "Enumerate users via brute forcing login forms with username and password lists by analyzing error messages and status codes")
+	rootCmd.Flags().BoolVarP(&flags.nonexistentUserEnum, "nonexistent-user-enum", "", false, "Enumerate users via brute forcing login forms with username list and fake password by analyzing error messages and status codes")
+	
+	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
 	rootCmd.Flags().StringVarP(&flags.firstName, "first-name", "", "", "First name of the person")
 	rootCmd.Flags().StringVarP(&flags.lastName, "last-name", "", "", "Last name of the person")
+	rootCmd.Flags().StringVarP(&flags.userlist, "userlist", "", "", "Username list file path")
+	rootCmd.Flags().StringVarP(&flags.passlist, "passlist", "", "", "Password list file path")
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
 	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number to use with HTTP OPTIONS")
