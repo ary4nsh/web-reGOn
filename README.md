@@ -53,7 +53,10 @@ go build -o linux-reGOn
 
 [Identity Management]
       --cookie-and-account   Cookie analysis and CMS account enumeration using wordlist
+      --error-message-enum   Enumerate users via brute forcing login forms with username and password lists by analyzing error messages and status codes
       --hidden-directories   Discover hidden directories using wordlist
+      --nonexistent-user-enum Enumerate users via brute forcing login forms with username list and fake password by analyzing error messages and status codes
+      --status-code-enum     Enumerate users via brute forcing login forms with username and password lists by status code
 
 [Other]
       --api-key              API key
@@ -62,8 +65,10 @@ go build -o linux-reGOn
       --first-name           First name of the person
   -h, --help                 help for linux-reGOn
       --last-name            Last name of the person
+      --passlist             Password list file path
   -p, --port                 Port number to use with HTTP OPTIONS
   -t, --threads              Number of concurrent threads (default: 50)
+      --userlist             Username list file path
   -w, --wordlist             Wordlist file path
 ```
 ## Input
