@@ -114,7 +114,7 @@ var flagGroups = map[string]string{
 	"dns-dumpster":         "Open Source Intelligence",
 	"ip-history":           "Open Source Intelligence",
 	"ip-location":          "Open Source Intelligence",
-	"mac-address-lokkup":   "Open Source Intelligence",
+	"mac-address-lookup":   "Open Source Intelligence",
 	"multiple-ping":        "Open Source Intelligence",
 	"reverse-dns":          "Open Source Intelligence",
 	"subdomain-discovery":  "Open Source Intelligence",
@@ -558,8 +558,8 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.emailFinder, "email-finder", "", false, "Find email address from domain and person names")
 	rootCmd.Flags().BoolVarP(&flags.emailVerifier, "email-verifier", "", false, "Verify email address deliverability")
 	rootCmd.Flags().BoolVarP(&flags.dnsDumpster, "dns-dumpster", "", false, "Find & look up DNS records from dnsdumpster.com")
-	rootCmd.Flags().BoolVarP(&flags.dnsLookup, "dnslookup", "", false, "Find & look up DNS records from viewdns.info")
-	rootCmd.Flags().BoolVarP(&flags.dnsPropagation, "dns-propagatior", "", false, "Check if recent changes to DNS records have propagated from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.dnsLookup, "dns-lookup", "", false, "Find & look up DNS records from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.dnsPropagation, "dns-propagation", "", false, "Check if recent changes to DNS records have propagated from viewdns.info")
 	rootCmd.Flags().BoolVarP(&flags.ipHistory, "ip-history", "", false, "Show historical IP addresses associated with a specific domain from viewdns.info")
 	rootCmd.Flags().BoolVarP(&flags.ipLocation, "ip-location", "", false, "Return the geographical location of an IP address from viewdns.info")
 	rootCmd.Flags().BoolVarP(&flags.multiplePing, "multiple-ping", "", false, "Check the latency and packet loss to a given host from multiple locations globally from viewdns.info")
