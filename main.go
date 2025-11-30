@@ -13,12 +13,23 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/dns"
 	"github.com/ary4nsh/web-reGOn/libs/waf"
 	"github.com/ary4nsh/web-reGOn/libs/identity-management"
+
 	"github.com/ary4nsh/web-reGOn/hunter.io/combined-enrichment"
 	"github.com/ary4nsh/web-reGOn/hunter.io/company-enrichment"
 	"github.com/ary4nsh/web-reGOn/hunter.io/domain-search"
 	"github.com/ary4nsh/web-reGOn/hunter.io/email-enrichment"
 	"github.com/ary4nsh/web-reGOn/hunter.io/email-finder"
 	"github.com/ary4nsh/web-reGOn/hunter.io/email-verifier"
+
+	"github.com/ary4nsh/web-reGOn/viewdns/dns-lookup"
+	"github.com/ary4nsh/web-reGOn/viewdns/dns-propagation"
+	"github.com/ary4nsh/web-reGOn/viewdns/ip-history"
+	"github.com/ary4nsh/web-reGOn/viewdns/ip-location"
+	"github.com/ary4nsh/web-reGOn/viewdns/mac-address-lookup"
+	"github.com/ary4nsh/web-reGOn/viewdns/multiple-ping"
+	"github.com/ary4nsh/web-reGOn/viewdns/reverse-dns"
+	"github.com/ary4nsh/web-reGOn/viewdns/subdomain-discovery"
+	"github.com/ary4nsh/web-reGOn/viewdns/traceroute"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -27,12 +38,7 @@ import (
 const maxURLLength = 100
 
 type Flags struct {
-	dnsFlag             bool
-	httpFlag            bool
-	httpOptions	    bool
-	hstsHeader	    bool
-	cspHeader	    bool
-	riaHeader	    bool
+	// Open Source Intelligence
 	shodanFlag          bool
 	combinedEnrichment  bool
 	companyEnrichment   bool
@@ -40,6 +46,23 @@ type Flags struct {
 	emailEnrichment     bool
 	emailFinder         bool
 	emailVerifier       bool
+	dnsLookup			bool
+	dnsPropagation		bool
+	ipHistory			bool
+	ipLocation			bool
+	macAddressLookup	bool
+	multiplePing		bool
+	reverseDns			bool
+	subdomainDiscovery	bool
+	traceroute			bool
+
+	// Misconfiguration
+	dnsFlag             bool
+	httpFlag            bool
+	httpOptions	    bool
+	hstsHeader	    bool
+	cspHeader	    bool
+	riaHeader	    bool
 	memcachedScan	    bool
 	pathConfusion	    bool
 	snmpWalk	    bool
@@ -51,39 +74,51 @@ type Flags struct {
 	whois		    bool
 	waf	 	    bool
 	
+	// Identity Management
 	hiddenDirectories   bool
 	cookieAndAccount    bool
 	statusCodeEnum	    bool
 	errorMessageEnum    bool
 	nonexistentUserEnum bool
 	
+	// Others
 	apiKey		    string
-	domain              string
-	firstName           string
-	lastName            string
+	domain          string
+	firstName       string
+	lastName        string
 	email		    string
 	port		    string
-	wordlist            string
+	wordlist        string
 	userlist	    string
 	passlist	    string
-	threads             int
+	mac             string
+	threads         int
 }
 
 var flagGroups = map[string]string{
 	"dns":                "Reconnaissance",
 	"http":               "Reconnaissance",
-	"dns-dumpster":       "Reconnaissance",
 	"zone-transfer":      "Reconnaissance",
 	"whois":              "Reconnaissance",
-	"waf":		      "Reconnaissance",
+	"waf":		          "Reconnaissance",
 	
-	"shodan":              "Open Source Intelligence",
-	"combined-enrichment": "Open Source Intelligence",
-	"company-enrichment":  "Open Source Intelligence",
-	"domain-search":       "Open Source Intelligence",
-	"email-enrichment":    "Open Source Intelligence",
-	"email-finder":        "Open Source Intelligence",
-	"email-verifier":      "Open Source Intelligence",
+	"shodan":               "Open Source Intelligence",
+	"combined-enrichment":  "Open Source Intelligence",
+	"company-enrichment":   "Open Source Intelligence",
+	"domain-search":        "Open Source Intelligence",
+	"email-enrichment":     "Open Source Intelligence",
+	"email-finder":         "Open Source Intelligence",
+	"email-verifier":       "Open Source Intelligence",
+	"dns-lookup":		    "Open Source Intelligence",
+	"dns-propagation":      "Open Source Intelligence",
+	"dns-dumpster":         "Open Source Intelligence",
+	"ip-history":           "Open Source Intelligence",
+	"ip-location":          "Open Source Intelligence",
+	"mac-address-lokkup":   "Open Source Intelligence",
+	"multiple-ping":        "Open Source Intelligence",
+	"reverse-dns":          "Open Source Intelligence",
+	"subdomain-discovery":  "Open Source Intelligence",
+	"traceroute":           "Open Source Intelligence",
 
 	"ftp":                "Misconfiguration",
 	"memcached":          "Misconfiguration",
@@ -112,7 +147,9 @@ func anyFlagSet(flags Flags) bool {
 		flags.memcachedScan || flags.dnsDumpster || flags.zoneTransfer ||
 		flags.whois || flags.cspHeader || flags.riaHeader || flags.pathConfusion ||
 		flags.waf || flags.hiddenDirectories || flags.cookieAndAccount ||
-		flags.statusCodeEnum || flags.errorMessageEnum || flags.nonexistentUserEnum
+		flags.statusCodeEnum || flags.errorMessageEnum || flags.nonexistentUserEnum ||
+		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
+		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute
 }
 
 func main() {
@@ -242,6 +279,78 @@ func main() {
 				}
 			}
 
+			// Check if dnsLookup flag is set and required fields are provided
+			if flags.dnsLookup {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+					return
+				}
+			}
+
+			// Check if dnsPropagation flag is set and required fields are provided
+			if flags.dnsPropagation {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+					return
+				}
+			}
+
+			// Check if dnsPropagation flag is set and required fields are provided
+			if flags.dnsPropagation {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+					return
+				}
+			}
+
+			// Check if ipHistory flag is set and required fields are provided
+			if flags.ipHistory {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+					return
+				}
+			}
+
+			// Check if macAddressLookup flag is set and required fields are provided
+			if flags.macAddressLookup {
+				if flags.apiKey == "" || flags.mac == "" {
+					fmt.Println("Please provide viewdns.info API key and mac address (--api-key string --mac string)")
+					return
+				}
+			}
+
+			// Check if multiplePing flag is set and required fields are provided
+			if flags.multiplePing {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+					return
+				}
+			}
+
+			// Check if reverseDns flag is set and required fields are provided
+			if flags.reverseDns {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and ip address (--api-key string --domain string)")
+					return
+				}
+			}
+
+			// Check if subdomainDiscovery flag is set and required fields are provided
+			if flags.subdomainDiscovery {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+					return
+				}
+			}
+
+			// Check if traceroute flag is set and required fields are provided
+			if flags.traceroute {
+				if flags.apiKey == "" || flags.domain == "" {
+					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+					return
+				}
+			}
+
 			// Check if URL is provided when at least one flag is set
 			if len(args) == 0 {
 				fmt.Println("Please provide a URL or an IP address")
@@ -253,27 +362,11 @@ func main() {
 
 			var wg sync.WaitGroup
 			functions := map[bool]func(){
+
+// Reconnaissance
 				flags.httpFlag: func() {
 					// Execute HTTP response check sequentially
 					http.HttpResponse(URL, &wg)
-				},
-				flags.httpOptions: func() {
-					// Execute HTTP OPTIONS check with port
-					http.HttpOptionsWithPort(URL, flags.port)
-				},
-				flags.hstsHeader: func() {
-					http.HstsHeaderWithPort(URL, flags.port)
-				},
-				flags.cspHeader: func() {
-					http.CspHeader(URL) 
-				},
-				flags.riaHeader: func() {
-					// Execute crossdomain.xml check sequentially
-					http.RichInternetApplication(URL, flags.port)
-				},
-				flags.pathConfusion: func() {
-					// Execute path confusion testing
-					http.PathConfusion(URL, flags.wordlist, flags.threads)
 				},
 				flags.dnsFlag: func() {
 					wg.Add(1) // Increment the WaitGroup counter for the DNS function
@@ -290,13 +383,21 @@ func main() {
 						fmt.Println("No WAF recognised")
 					}
 				},
-				flags.hiddenDirectories: func() {
-					// Execute hidden directories scan
-					identitymanagement.HiddenDirectories(URL, flags.wordlist, flags.threads)
+				flags.zoneTransfer: func() {
+					// Execute DNS zone transfer secuentially
+					dns.ZoneTransfer(URL)
 				},
-				flags.cookieAndAccount: func() {
-					identitymanagement.CookieAndAccount(URL, flags.wordlist, flags.threads)
+				flags.whois: func() {
+					// Execute Whois secuentially
+					libs.Whois(URL)
 				},
+				flags.dnsDumpster: func() {
+					// Execute DNS dumpster secuentially
+					dns.DnsDumpster(URL, flags.apiKey)
+				},
+
+
+// Open Source Intelligence
 				flags.shodanFlag: func() {
 					// Execute Shodan query sequentially
 					libs.HostIPQuery(flags.apiKey, URL)
@@ -325,6 +426,69 @@ func main() {
 					// Execute email verifier sequentially
 					emailVerifier.EmailVerifier(flags.apiKey, flags.email)
 				},
+				flags.dnsLookup: func() {
+					// Execute email verifier sequentially
+					dnsLookup.DnsLookup(flags.apiKey, flags.email)
+				},
+				flags.dnsPropagation: func() {
+					// Execute email verifier sequentially
+					dnsPropagation.DnsPropagation(flags.apiKey, flags.email)
+				},
+				flags.ipHistory: func() {
+					// Execute email verifier sequentially
+					ipHistory.IpHistory(flags.apiKey, flags.email)
+				},
+				flags.ipLocation: func() {
+					// Execute email verifier sequentially
+					ipLocation.IpLocation(flags.apiKey, flags.email)
+				},
+				flags.macAddressLookup: func() {
+					// Execute email verifier sequentially
+					macLookup.MacLookup(flags.apiKey, flags.email)
+				},
+				flags.multiplePing: func() {
+					// Execute email verifier sequentially
+					multiplePing.MultiplePing(flags.apiKey, flags.email)
+				},
+				flags.reverseDns: func() {
+					// Execute email verifier sequentially
+					reverseDns.ReverseDns(flags.apiKey, flags.email)
+				},
+				flags.subdomainDiscovery: func() {
+					// Execute email verifier sequentially
+					subdomainDiscovery.SubdomainDiscovery(flags.apiKey, flags.email)
+				},
+				flags.traceroute: func() {
+					// Execute email verifier sequentially
+					traceroute.Traceroute(flags.apiKey, flags.email)
+				},
+
+// Misconfiguration
+				flags.httpOptions: func() {
+					// Execute HTTP OPTIONS check with port
+					http.HttpOptionsWithPort(URL, flags.port)
+				},
+				flags.hstsHeader: func() {
+					http.HstsHeaderWithPort(URL, flags.port)
+				},
+				flags.cspHeader: func() {
+					http.CspHeader(URL) 
+				},
+				flags.riaHeader: func() {
+					// Execute crossdomain.xml check sequentially
+					http.RichInternetApplication(URL, flags.port)
+				},
+				flags.pathConfusion: func() {
+					// Execute path confusion testing
+					http.PathConfusion(URL, flags.wordlist, flags.threads)
+				},
+				flags.hiddenDirectories: func() {
+					// Execute hidden directories scan
+					identitymanagement.HiddenDirectories(URL, flags.wordlist, flags.threads)
+				},
+				flags.cookieAndAccount: func() {
+					identitymanagement.CookieAndAccount(URL, flags.wordlist, flags.threads)
+				},
 				flags.snmpWalk: func() {
 					// Execute SNMP walk sequentially
 					snmp.SNMPWalk(ipAddress)
@@ -345,18 +509,8 @@ func main() {
 					// Execute Memcached scan sequentially
 					memcached.MemcachedScan(ipAddress)
 				},
-				flags.dnsDumpster: func() {
-					// Execute DNS dumpster secuentially
-					dns.DnsDumpster(URL, flags.apiKey)
-				},
-				flags.zoneTransfer: func() {
-					// Execute DNS zone transfer secuentially
-					dns.ZoneTransfer(URL)
-				},
-				flags.whois: func() {
-					// Execute Whois secuentially
-					libs.Whois(URL)
-				},
+
+// Identity Manegement
 				flags.statusCodeEnum: func() {
 					// Execute login fuzzer
 					identitymanagement.StatusCodeEnum(URL, flags.userlist, flags.passlist, flags.threads)
@@ -391,7 +545,6 @@ func main() {
 	// Reconnaissance
 	rootCmd.Flags().BoolVarP(&flags.dnsFlag, "dns", "D", false, "DNS Records")
 	rootCmd.Flags().BoolVarP(&flags.httpFlag, "http", "H", false, "HTTP Status Code")
-	rootCmd.Flags().BoolVarP(&flags.dnsDumpster, "dns-dumpster", "", false, "Find & look up DNS records from dnsdumpster.com")
 	rootCmd.Flags().BoolVarP(&flags.zoneTransfer, "zone-transfer", "", false, "Perform zone transfer on a domain")
 	rootCmd.Flags().BoolVarP(&flags.whois, "whois", "", false, "Query for Whois records")
 	rootCmd.Flags().BoolVar(&flags.waf, "waf", false, "Detect Web Application Firewall")
@@ -404,7 +557,17 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.emailEnrichment, "email-enrichment", "", false, "Email enrichment information")
 	rootCmd.Flags().BoolVarP(&flags.emailFinder, "email-finder", "", false, "Find email address from domain and person names")
 	rootCmd.Flags().BoolVarP(&flags.emailVerifier, "email-verifier", "", false, "Verify email address deliverability")
-	
+	rootCmd.Flags().BoolVarP(&flags.dnsDumpster, "dns-dumpster", "", false, "Find & look up DNS records from dnsdumpster.com")
+	rootCmd.Flags().BoolVarP(&flags.dnsLookup, "dnslookup", "", false, "Find & look up DNS records from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.dnsPropagation, "dns-propagatior", "", false, "Check if recent changes to DNS records have propagated from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.ipHistory, "ip-history", "", false, "Show historical IP addresses associated with a specific domain from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.ipLocation, "ip-location", "", false, "Return the geographical location of an IP address from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.multiplePing, "multiple-ping", "", false, "Check the latency and packet loss to a given host from multiple locations globally from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.reverseDns, "reverse-dns", "", false, "Return DNS Pointer (PTR) record for a given IP address from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.subdomainDiscovery, "subdomain-discovery", "", false, "Provide a comprehensive list of subdomains associated with a given domain from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.macAddressLookup, "mac-address-lookup", "", false, "Search the OUI database to determine which manufacturer a given MAC address belongs to, from viewdns.info")
+	rootCmd.Flags().BoolVarP(&flags.traceroute, "tracerout", "", false, "Trace the network path from our test location to a given host from viewdns.info")
+
 	// Misconfiguration
 	rootCmd.Flags().BoolVarP(&flags.httpOptions, "http-options", "", false, "HTTP OPTIONS Method Check")
 	rootCmd.Flags().BoolVarP(&flags.hstsHeader, "hsts-header", "", false, "Check HSTS and security headers")
@@ -434,6 +597,7 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
 	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number to use with HTTP OPTIONS")
 	rootCmd.Flags().StringVarP(&flags.wordlist, "wordlist", "w", "", "Wordlist file path")
+	rootCmd.Flags().StringVarP(&flags.mac, "mac", "w", "", "MAC address")
 	rootCmd.Flags().IntVarP(&flags.threads, "threads", "t", 50, "Number of concurrent threads (default: 50)")
 	
 	rootCmd.SetUsageFunc(func(cmd *cobra.Command) error {
