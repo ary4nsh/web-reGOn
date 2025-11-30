@@ -24,7 +24,6 @@ go build -o linux-reGOn
 ```bash
 [Reconnaissance]
   -D, --dns                  DNS Records
-      --dns-dumpster         Find & look up DNS records from dnsdumpster.com
   -H, --http                 HTTP Status Code
       --waf                  Detect Web Application Firewall
       --whois                Query for Whois records
@@ -33,11 +32,20 @@ go build -o linux-reGOn
 [Open Source Intelligence]
       --combined-enrichment  Company and Email enrichment information
       --company-enrichment   Company enrichment information
+      --dns-dumpster         Find & look up DNS records from dnsdumpster.com
+      --dns-lookup           Find & look up DNS records from viewdns.info
+      --dns-propagation      Check if recent changes to DNS records have propagated from viewdns.info
       --domain-search        Domain search for email addresses
       --email-enrichment     Email enrichment information
       --email-finder         Find email address from domain and person names
       --email-verifier       Verify email address deliverability
+      --ip-history           Show historical IP addresses associated with a specific domain from viewdns.info
+      --ip-location          Return the geographical location of an IP address from viewdns.info
+      --mac-address-lookup   Search the OUI database to determine which manufacturer a given MAC address belongs to, from viewdns.info
+      --multiple-ping        Check the latency and packet loss to a given host from multiple locations globally from viewdns.info
+      --reverse-dns          Return DNS Pointer (PTR) record for a given IP address from viewdns.info
   -S, --shodan               Shodan Host IP Query
+      --subdomain-discovery  Provide a comprehensive list of subdomains associated with a given domain from viewdns.info
 
 [Misconfiguration]
       --csp                  Analyse Content-Security-Policy header
@@ -65,9 +73,11 @@ go build -o linux-reGOn
       --first-name           First name of the person
   -h, --help                 help for linux-reGOn
       --last-name            Last name of the person
+      --mac                  MAC address
       --passlist             Password list file path
   -p, --port                 Port number to use with HTTP OPTIONS
   -t, --threads              Number of concurrent threads (default: 50)
+      --tracerout            Trace the network path from our test location to a given host from viewdns.info
       --userlist             Username list file path
   -w, --wordlist             Wordlist file path
 ```
