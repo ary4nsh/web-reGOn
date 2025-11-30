@@ -597,7 +597,7 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
 	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number to use with HTTP OPTIONS")
 	rootCmd.Flags().StringVarP(&flags.wordlist, "wordlist", "w", "", "Wordlist file path")
-	rootCmd.Flags().StringVarP(&flags.mac, "mac", "w", "", "MAC address")
+	rootCmd.Flags().StringVarP(&flags.mac, "mac", "", "", "MAC address")
 	rootCmd.Flags().IntVarP(&flags.threads, "threads", "t", 50, "Number of concurrent threads (default: 50)")
 	
 	rootCmd.SetUsageFunc(func(cmd *cobra.Command) error {
