@@ -13,6 +13,7 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/dns"
 	"github.com/ary4nsh/web-reGOn/libs/waf"
 	"github.com/ary4nsh/web-reGOn/libs/identity-management"
+	"github.com/ary4nsh/web-reGOn/libs/broken-authentication"
 
 	"github.com/ary4nsh/web-reGOn/hunter.io/combined-enrichment"
 	"github.com/ary4nsh/web-reGOn/hunter.io/company-enrichment"
@@ -80,6 +81,9 @@ type Flags struct {
 	statusCodeEnum	    bool
 	errorMessageEnum    bool
 	nonexistentUserEnum bool
+
+	// Broken Authentication
+	tls		bool
 	
 	// Others
 	apiKey		    string
@@ -136,6 +140,8 @@ var flagGroups = map[string]string{
 	"status-code-enum":      "Identity Management",
 	"error-message-enum":    "Identity Management",
 	"nonexistent-user-enum": "Identity Management",
+
+	"tls":					"Broken Authentication",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -149,7 +155,8 @@ func anyFlagSet(flags Flags) bool {
 		flags.waf || flags.hiddenDirectories || flags.cookieAndAccount ||
 		flags.statusCodeEnum || flags.errorMessageEnum || flags.nonexistentUserEnum ||
 		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
-		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute
+		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
+		flags.tls
 }
 
 func main() {
@@ -523,6 +530,11 @@ func main() {
 					// Execute nonexistent user enumeration
 					identitymanagement.NonexistentUserEnum(URL, flags.userlist, flags.threads)
 				},
+
+// Broken Authentication
+				flags.tls: func() {
+    				brokenauthorization.TlsTest(URL, flags.port)
+				},
 			}
 
 			for flag, function := range functions {
@@ -586,6 +598,9 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.errorMessageEnum, "error-message-enum", "", false, "Enumerate users via brute forcing login forms with username and password lists by analyzing error messages and status codes")
 	rootCmd.Flags().BoolVarP(&flags.nonexistentUserEnum, "nonexistent-user-enum", "", false, "Enumerate users via brute forcing login forms with username list and fake password by analyzing error messages and status codes")
 	
+	// Broken Authentication
+	rootCmd.Flags().BoolVar(&flags.tls, "tls", false, "Test for TLS/SSL vulnerabilities")
+	
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
@@ -619,7 +634,7 @@ func main() {
 		groups[group] = append(groups[group], line)
 	})
 
-	order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Other"}
+	order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Other"}
 	for _, group := range order {
 		if lines, ok := groups[group]; ok {
 			fmt.Printf("[%s]\n", group)
