@@ -66,6 +66,9 @@ go build -o linux-reGOn
       --nonexistent-user-enum Enumerate users via brute forcing login forms with username list and fake password by analyzing error messages and status codes
       --status-code-enum     Enumerate users via brute forcing login forms with username and password lists by status code
 
+[Broken Authentication]
+      --tls                  Test for TLS/SSL vulnerabilities
+
 [Other]
       --api-key              API key
       --domain               Domain to search for email
