@@ -28,7 +28,14 @@ func CspHeader(url string) {
 		url = "https://" + url
 	}
 
-	resp, err := http.Get(url)
+	resp, err := (&http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return http.ErrUseLastResponse
+			}
+			return nil
+		},
+	}).Get(url)
 	if err != nil {
 		fmt.Printf("[-] CSP check failed: %v\n", err)
 		return
