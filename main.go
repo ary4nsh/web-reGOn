@@ -8,20 +8,20 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/reconnaissance"
 
 	"github.com/ary4nsh/web-reGOn/libs/osint"
-	"github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/combined-enrichment"
-	"github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/company-enrichment"
-	"github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/domain-search"
-	"github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/email-enrichment"
-	"github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/email-finder"
-	"github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/email-verifier"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/dns-lookup"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/dns-propagation"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/ip-history"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/ip-location"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/mac-address-lookup"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/multiple-ping"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/reverse-dns"
-	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/subdomain-discovery"
+	combinedEnrichment "github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/combined-enrichment"
+	companyEnrichment "github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/company-enrichment"
+	domainSearch "github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/domain-search"
+	emailEnrichment "github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/email-enrichment"
+	emailFinder "github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/email-finder"
+	emailVerifier "github.com/ary4nsh/web-reGOn/libs/osint/hunter.io/email-verifier"
+	dnsLookup "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/dns-lookup"
+	dnsPropagation "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/dns-propagation"
+	ipHistory "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/ip-history"
+	ipLocation "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/ip-location"
+	macLookup "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/mac-address-lookup"
+	multiplePing "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/multiple-ping"
+	reverseDns "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/reverse-dns"
+	subdomainDiscovery "github.com/ary4nsh/web-reGOn/libs/osint/viewdns/subdomain-discovery"
 	"github.com/ary4nsh/web-reGOn/libs/osint/viewdns/traceroute"
 
 	//"github.com/ary4nsh/web-reGOn/libs/misconfiguration/smb"
@@ -30,120 +30,118 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/memcached"
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/snmp"
 
-	"github.com/ary4nsh/web-reGOn/libs/identity-management"
+	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
 
-	"github.com/ary4nsh/web-reGOn/libs/broken-authentication"
+	brokenauthorization "github.com/ary4nsh/web-reGOn/libs/broken-authentication"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-const maxURLLength = 100
-
 type Flags struct {
 	// Open Source Intelligence
-	shodanFlag          bool
-	combinedEnrichment  bool
-	companyEnrichment   bool
-	domainSearch        bool
-	emailEnrichment     bool
-	emailFinder         bool
-	emailVerifier       bool
-	dnsLookup			bool
-	dnsPropagation		bool
-	ipHistory			bool
-	ipLocation			bool
-	macAddressLookup	bool
-	multiplePing		bool
-	reverseDns			bool
-	subdomainDiscovery	bool
-	traceroute			bool
+	shodanFlag         bool
+	combinedEnrichment bool
+	companyEnrichment  bool
+	domainSearch       bool
+	emailEnrichment    bool
+	emailFinder        bool
+	emailVerifier      bool
+	dnsLookup          bool
+	dnsPropagation     bool
+	ipHistory          bool
+	ipLocation         bool
+	macAddressLookup   bool
+	multiplePing       bool
+	reverseDns         bool
+	subdomainDiscovery bool
+	traceroute         bool
 
 	// Misconfiguration
-	dnsFlag             bool
-	httpFlag            bool
-	httpOptions	    bool
-	hstsHeader	    bool
-	cspHeader	    bool
-	riaHeader	    bool
-	memcachedScan	    bool
-	pathConfusion	    bool
-	snmpWalk	    bool
-	snmpEnumUsers	    bool
-	snmpEnumShares	    bool
-	ftpScan		    bool
-	dnsDumpster	    bool
-	zoneTransfer	    bool
-	whois		    bool
-	waf	 	    bool
-	
+	dnsFlag        bool
+	httpFlag       bool
+	httpOptions    bool
+	hstsHeader     bool
+	cspHeader      bool
+	riaHeader      bool
+	memcachedScan  bool
+	pathConfusion  bool
+	snmpWalk       bool
+	snmpEnumUsers  bool
+	snmpEnumShares bool
+	ftpScan        bool
+	dnsDumpster    bool
+	zoneTransfer   bool
+	whois          bool
+	waf            bool
+
 	// Identity Management
 	hiddenDirectories   bool
 	cookieAndAccount    bool
-	statusCodeEnum	    bool
+	statusCodeEnum      bool
 	errorMessageEnum    bool
 	nonexistentUserEnum bool
 
 	// Broken Authentication
-	tls		bool
-	
+	tls bool
+
 	// Others
-	apiKey		    string
-	domain          string
-	firstName       string
-	lastName        string
-	email		    string
-	port		    string
-	wordlist        string
-	userlist	    string
-	passlist	    string
-	mac             string
-	threads         int
+	apiKey    string
+	domain    string
+	firstName string
+	lastName  string
+	email     string
+	port      string
+	wordlist  string
+	userlist  string
+	passlist  string
+	mac       string
+	threads   int
 }
 
 var flagGroups = map[string]string{
-	"dns":                "Reconnaissance",
-	"http":               "Reconnaissance",
-	"zone-transfer":      "Reconnaissance",
-	"whois":              "Reconnaissance",
-	"waf":		          "Reconnaissance",
-	
-	"shodan":               "Open Source Intelligence",
-	"combined-enrichment":  "Open Source Intelligence",
-	"company-enrichment":   "Open Source Intelligence",
-	"domain-search":        "Open Source Intelligence",
-	"email-enrichment":     "Open Source Intelligence",
-	"email-finder":         "Open Source Intelligence",
-	"email-verifier":       "Open Source Intelligence",
-	"dns-lookup":		    "Open Source Intelligence",
-	"dns-propagation":      "Open Source Intelligence",
-	"dns-dumpster":         "Open Source Intelligence",
-	"ip-history":           "Open Source Intelligence",
-	"ip-location":          "Open Source Intelligence",
-	"mac-address-lookup":   "Open Source Intelligence",
-	"multiple-ping":        "Open Source Intelligence",
-	"reverse-dns":          "Open Source Intelligence",
-	"subdomain-discovery":  "Open Source Intelligence",
-	"traceroute":           "Open Source Intelligence",
+	"dns":           "Reconnaissance",
+	"http":          "Reconnaissance",
+	"zone-transfer": "Reconnaissance",
+	"whois":         "Reconnaissance",
+	"waf":           "Reconnaissance",
 
-	"ftp":                "Misconfiguration",
-	"memcached":          "Misconfiguration",
-	"snmp-walk":          "Misconfiguration",
-	"snmp-enumusers":     "Misconfiguration",
-	"snmp-enumshares":    "Misconfiguration",
-	"http-options":       "Misconfiguration",
-	"hsts-header":        "Misconfiguration",
-	"ria":                "Misconfiguration",
-	"csp":                "Misconfiguration",
-	"path-confusion":     "Misconfiguration",
-	
+	"shodan":              "Open Source Intelligence",
+	"combined-enrichment": "Open Source Intelligence",
+	"company-enrichment":  "Open Source Intelligence",
+	"domain-search":       "Open Source Intelligence",
+	"email-enrichment":    "Open Source Intelligence",
+	"email-finder":        "Open Source Intelligence",
+	"email-verifier":      "Open Source Intelligence",
+	"dns-lookup":          "Open Source Intelligence",
+	"dns-propagation":     "Open Source Intelligence",
+	"dns-dumpster":        "Open Source Intelligence",
+	"ip-history":          "Open Source Intelligence",
+	"ip-location":         "Open Source Intelligence",
+	"mac-address-lookup":  "Open Source Intelligence",
+	"multiple-ping":       "Open Source Intelligence",
+	"reverse-dns":         "Open Source Intelligence",
+	"subdomain-discovery": "Open Source Intelligence",
+	"traceroute":          "Open Source Intelligence",
+
+	"ftp":             "Misconfiguration",
+	"memcached":       "Misconfiguration",
+	"snmp-walk":       "Misconfiguration",
+	"snmp-enumusers":  "Misconfiguration",
+	"snmp-enumshares": "Misconfiguration",
+	"http-options":    "Misconfiguration",
+	"hsts-header":     "Misconfiguration",
+	"ria":             "Misconfiguration",
+	"csp":             "Misconfiguration",
+	"path-confusion":  "Misconfiguration",
+
 	"hidden-directories":    "Identity Management",
 	"cookie-and-account":    "Identity Management",
 	"status-code-enum":      "Identity Management",
 	"error-message-enum":    "Identity Management",
 	"nonexistent-user-enum": "Identity Management",
 
-	"tls":					"Broken Authentication",
+	"tls": "Broken Authentication",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -174,7 +172,7 @@ func main() {
 				cmd.Help()
 				return
 			}
-			
+
 			// Check if httpOptions is set and port is provided
 			if flags.httpOptions {
 				if flags.port == "" {
@@ -182,7 +180,7 @@ func main() {
 					return
 				}
 			}
-			
+
 			// Check if dirTraversal is set and wordlist is provided
 			if flags.pathConfusion {
 				if flags.wordlist == "" {
@@ -190,21 +188,21 @@ func main() {
 					return
 				}
 			}
-			
+
 			if flags.hiddenDirectories {
 				if flags.wordlist == "" {
 					fmt.Println("Please provide wordlist path when using --hidden-directories (--wordlist string)")
 					return
 				}
 			}
-			
+
 			if flags.cookieAndAccount {
 				if flags.wordlist == "" {
 					fmt.Println("Please provide wordlist path when using --cookie-and-account (--wordlist string)")
 					return
 				}
 			}
-			
+
 			// Check if emailFinder flag is set and required fields are provided
 			if flags.emailFinder {
 				if flags.apiKey == "" || flags.domain == "" || flags.firstName == "" || flags.lastName == "" {
@@ -212,7 +210,7 @@ func main() {
 					return
 				}
 			}
-			
+
 			// Check if emailVerifier flag is set and email is provided
 			if flags.emailVerifier {
 				if flags.apiKey == "" || flags.email == "" {
@@ -220,7 +218,7 @@ func main() {
 					return
 				}
 			}
-			
+
 			// Check if emailEnrichment flag is set and apiKey and email are provided
 			if flags.emailEnrichment {
 				if flags.apiKey == "" || flags.email == "" {
@@ -228,7 +226,7 @@ func main() {
 					return
 				}
 			}
-			
+
 			// Check if domainSearch flag is set and required fields are provided
 			if flags.domainSearch {
 				if flags.apiKey == "" || flags.domain == "" {
@@ -236,7 +234,7 @@ func main() {
 					return
 				}
 			}
-			
+
 			// Check if companyEnrichment flag is set and required fields are provided
 			if flags.companyEnrichment {
 				if flags.apiKey == "" || flags.domain == "" {
@@ -244,7 +242,7 @@ func main() {
 					return
 				}
 			}
-			
+
 			// Check if combinedEnrichment flag is set and required fields are provided
 			if flags.combinedEnrichment {
 				if flags.apiKey == "" || flags.email == "" {
@@ -252,7 +250,7 @@ func main() {
 					return
 				}
 			}
-			
+
 			// Check if shodanFlag is set and required fields are provided
 			if flags.shodanFlag {
 				if flags.apiKey == "" {
@@ -260,27 +258,27 @@ func main() {
 					return
 				}
 			}
-			
+
 			if flags.dnsDumpster {
 				if flags.apiKey == "" {
 					fmt.Println("Please provide dnsdumpster.com api key and URL (--api-key string)")
 				}
 			}
-			
+
 			if flags.statusCodeEnum {
 				if flags.userlist == "" || flags.passlist == "" {
 					fmt.Println("Please provide userlist and passlist paths when using --status-code-enum (--userlist string --passlist string)")
 					return
 				}
 			}
-			
+
 			if flags.errorMessageEnum {
 				if flags.userlist == "" || flags.passlist == "" {
 					fmt.Println("Please provide userlist and passlist paths when using --error-message-enum (--userlist string --passlist string)")
 					return
 				}
 			}
-			
+
 			if flags.nonexistentUserEnum {
 				if flags.userlist == "" {
 					fmt.Println("Please provide userlist path when using --nonexistent-user-enum (--userlist string)")
@@ -290,32 +288,24 @@ func main() {
 
 			// Check if dnsLookup flag is set and required fields are provided
 			if flags.dnsLookup {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+				if flags.apiKey == "" {
+					fmt.Println("Please provide viewdns.info API key (--api-key string)")
 					return
 				}
 			}
 
 			// Check if dnsPropagation flag is set and required fields are provided
 			if flags.dnsPropagation {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
-					return
-				}
-			}
-
-			// Check if dnsPropagation flag is set and required fields are provided
-			if flags.dnsPropagation {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+				if flags.apiKey == "" {
+					fmt.Println("Please provide viewdns.info API key (--api-key string)")
 					return
 				}
 			}
 
 			// Check if ipHistory flag is set and required fields are provided
 			if flags.ipHistory {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+				if flags.apiKey == "" {
+					fmt.Println("Please provide viewdns.info API key (--api-key string)")
 					return
 				}
 			}
@@ -330,49 +320,57 @@ func main() {
 
 			// Check if multiplePing flag is set and required fields are provided
 			if flags.multiplePing {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+				if flags.apiKey == "" {
+					fmt.Println("Please provide viewdns.info API key (--api-key string)")
 					return
 				}
 			}
 
 			// Check if reverseDns flag is set and required fields are provided
 			if flags.reverseDns {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and ip address (--api-key string --domain string)")
+				if flags.apiKey == "" {
+					fmt.Println("Please provide viewdns.info API key (--api-key string)")
 					return
 				}
 			}
 
 			// Check if subdomainDiscovery flag is set and required fields are provided
 			if flags.subdomainDiscovery {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+				if flags.apiKey == "" {
+					fmt.Println("Please provide viewdns.info API key (--api-key string)")
 					return
 				}
 			}
 
 			// Check if traceroute flag is set and required fields are provided
 			if flags.traceroute {
-				if flags.apiKey == "" || flags.domain == "" {
-					fmt.Println("Please provide viewdns.info API key and domain name (--api-key string --domain string)")
+				if flags.apiKey == "" {
+					fmt.Println("Please provide viewdns.info API key (--api-key string)")
 					return
 				}
 			}
 
-			// Check if URL is provided when at least one flag is set
-			if len(args) == 0 {
-				fmt.Println("Please provide a URL or an IP address")
-				return
-			}
+			requiresTarget := flags.dnsFlag || flags.httpFlag || flags.httpOptions || flags.hstsHeader ||
+				flags.snmpWalk || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
+				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
+				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
+				flags.nonexistentUserEnum || flags.tls || flags.waf || flags.zoneTransfer ||
+				flags.whois || flags.cspHeader || flags.riaHeader
 
-			URL := args[0]
-			ipAddress := args[0]
+			var URL, ipAddress string
+			if requiresTarget {
+				if len(args) == 0 {
+					fmt.Println("Please provide a URL or an IP address")
+					return
+				}
+				URL = args[0]
+				ipAddress = args[0]
+			}
 
 			var wg sync.WaitGroup
 			functions := map[bool]func(){
 
-// Reconnaissance
+				// Reconnaissance
 				flags.httpFlag: func() {
 					// Execute HTTP response check sequentially
 					reconnaissance.HttpResponse(URL, &wg)
@@ -401,8 +399,7 @@ func main() {
 					reconnaissance.Whois(URL)
 				},
 
-
-// Open Source Intelligence
+				// Open Source Intelligence
 				flags.dnsDumpster: func() {
 					// Execute DNS dumpster secuentially
 					osint.DnsDumpster(URL, flags.apiKey)
@@ -472,7 +469,7 @@ func main() {
 					traceroute.Traceroute(flags.apiKey, flags.email)
 				},
 
-// Misconfiguration
+				// Misconfiguration
 				flags.httpOptions: func() {
 					// Execute HTTP OPTIONS check with port
 					http.HttpOptionsWithPort(URL, flags.port)
@@ -481,7 +478,7 @@ func main() {
 					http.HstsHeaderWithPort(URL, flags.port)
 				},
 				flags.cspHeader: func() {
-					http.CspHeader(URL) 
+					http.CspHeader(URL)
 				},
 				flags.riaHeader: func() {
 					// Execute crossdomain.xml check sequentially
@@ -519,7 +516,7 @@ func main() {
 					memcached.MemcachedScan(ipAddress)
 				},
 
-// Identity Manegement
+				// Identity Manegement
 				flags.statusCodeEnum: func() {
 					// Execute login fuzzer
 					identitymanagement.StatusCodeEnum(URL, flags.userlist, flags.passlist, flags.threads)
@@ -533,9 +530,9 @@ func main() {
 					identitymanagement.NonexistentUserEnum(URL, flags.userlist, flags.threads)
 				},
 
-// Broken Authentication
+				// Broken Authentication
 				flags.tls: func() {
-    				brokenauthorization.TlsTest(URL, flags.port)
+					brokenauthorization.TlsTest(URL, flags.port)
 				},
 			}
 
@@ -562,7 +559,7 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.zoneTransfer, "zone-transfer", "", false, "Perform zone transfer on a domain")
 	rootCmd.Flags().BoolVarP(&flags.whois, "whois", "", false, "Query for Whois records")
 	rootCmd.Flags().BoolVar(&flags.waf, "waf", false, "Detect Web Application Firewall")
-	
+
 	// Open Source Intelligence
 	rootCmd.Flags().BoolVarP(&flags.shodanFlag, "shodan", "S", false, "Shodan Host IP Query")
 	rootCmd.Flags().BoolVarP(&flags.combinedEnrichment, "combined-enrichment", "", false, "Company and Email enrichment information")
@@ -593,16 +590,16 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.snmpEnumShares, "snmp-enumshares", "", false, "Enumerate SNMP Windows SMB Share")
 	rootCmd.Flags().BoolVarP(&flags.ftpScan, "ftp", "", false, "Scan FTP server")
 	rootCmd.Flags().BoolVarP(&flags.memcachedScan, "memcached", "", false, "Scan Memcached server")
-	
+
 	// Identity Management
 	rootCmd.Flags().BoolVarP(&flags.hiddenDirectories, "hidden-directories", "", false, "Discover hidden directories using wordlist")
 	rootCmd.Flags().BoolVarP(&flags.statusCodeEnum, "status-code-enum", "", false, "Enumerate users via brute forcing login forms with username and password lists by status code")
 	rootCmd.Flags().BoolVarP(&flags.errorMessageEnum, "error-message-enum", "", false, "Enumerate users via brute forcing login forms with username and password lists by analyzing error messages and status codes")
 	rootCmd.Flags().BoolVarP(&flags.nonexistentUserEnum, "nonexistent-user-enum", "", false, "Enumerate users via brute forcing login forms with username list and fake password by analyzing error messages and status codes")
-	
+
 	// Broken Authentication
 	rootCmd.Flags().BoolVar(&flags.tls, "tls", false, "Test for TLS/SSL vulnerabilities")
-	
+
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
@@ -616,39 +613,39 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.wordlist, "wordlist", "w", "", "Wordlist file path")
 	rootCmd.Flags().StringVarP(&flags.mac, "mac", "", "", "MAC address")
 	rootCmd.Flags().IntVarP(&flags.threads, "threads", "t", 50, "Number of concurrent threads (default: 50)")
-	
+
 	rootCmd.SetUsageFunc(func(cmd *cobra.Command) error {
-	fmt.Println("Usage:")
-	fmt.Println("  linux-reGOn [url] [flags]")
-	fmt.Println()
+		fmt.Println("Usage:")
+		fmt.Println("  linux-reGOn [url] [flags]")
+		fmt.Println()
 
-	groups := make(map[string][]string)
+		groups := make(map[string][]string)
 
-	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		group := flagGroups[f.Name]
-		if group == "" {
-			group = "Other"
-		}
-		line := fmt.Sprintf("      --%-20s %s", f.Name, f.Usage)
-		if f.Shorthand != "" {
-			line = fmt.Sprintf("  -%s, --%-20s %s", f.Shorthand, f.Name, f.Usage)
-		}
-		groups[group] = append(groups[group], line)
-	})
-
-	order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Other"}
-	for _, group := range order {
-		if lines, ok := groups[group]; ok {
-			fmt.Printf("[%s]\n", group)
-			for _, line := range lines {
-				fmt.Println(line)
+		cmd.Flags().VisitAll(func(f *pflag.Flag) {
+			group := flagGroups[f.Name]
+			if group == "" {
+				group = "Other"
 			}
-			fmt.Println()
-		}
-	}
+			line := fmt.Sprintf("      --%-20s %s", f.Name, f.Usage)
+			if f.Shorthand != "" {
+				line = fmt.Sprintf("  -%s, --%-20s %s", f.Shorthand, f.Name, f.Usage)
+			}
+			groups[group] = append(groups[group], line)
+		})
 
-	return nil
-})
+		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Other"}
+		for _, group := range order {
+			if lines, ok := groups[group]; ok {
+				fmt.Printf("[%s]\n", group)
+				for _, line := range lines {
+					fmt.Println(line)
+				}
+				fmt.Println()
+			}
+		}
+
+		return nil
+	})
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
