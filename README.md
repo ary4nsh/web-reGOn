@@ -20,6 +20,9 @@ go build -o linux-reGOn
 ./linux-reGOn --help
 ```
 
+## Documentation
+The documentation of this tool is available [here] (https://github.com/ary4nsh/web-reGOn/Documentation)
+
 ## Usage
 ```bash
 [Reconnaissance]
