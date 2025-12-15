@@ -21,7 +21,7 @@ go build -o linux-reGOn
 ```
 
 ## Documentation
-The documentation of this tool is available [here](https://github.com/ary4nsh/web-reGOn/Documentation)
+The documentation of this tool is available [here](https://github.com/ary4nsh/web-reGOn/tree/main/Documentation)
 
 ## Usage
 ```bash
