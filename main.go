@@ -173,14 +173,6 @@ func main() {
 				return
 			}
 
-			// Check if httpOptions is set and port is provided
-			if flags.httpOptions {
-				if flags.port == "" {
-					fmt.Println("Please provide port number when using --http-options (--port string)")
-					return
-				}
-			}
-
 			// Check if dirTraversal is set and wordlist is provided
 			if flags.pathConfusion {
 				if flags.wordlist == "" {
@@ -472,13 +464,13 @@ func main() {
 				// Misconfiguration
 				flags.httpOptions: func() {
 					// Execute HTTP OPTIONS check with port
-					http.HttpOptionsWithPort(URL, flags.port)
+					http.HttpOptions(URL, flags.port)
 				},
 				flags.hstsHeader: func() {
 					http.HstsHeaderWithPort(URL, flags.port)
 				},
 				flags.cspHeader: func() {
-					http.CspHeader(URL)
+					http.CspHeader(URL, flags.port)
 				},
 				flags.riaHeader: func() {
 					// Execute crossdomain.xml check sequentially
