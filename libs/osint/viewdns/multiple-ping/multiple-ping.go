@@ -1,0 +1,36 @@
+package multiplePing
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+)
+
+func MultiplePing(apiKey, host string) {
+
+	url := fmt.Sprintf("https://api.viewdns.info/ping/v2/?host=%s&apikey=%s&output=json",
+		host, apiKey)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "request failed:", err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "read failed:", err)
+		os.Exit(1)
+	}
+
+	var raw any
+	if err := json.Unmarshal(body, &raw); err != nil {
+		fmt.Fprintln(os.Stderr, "invalid JSON:", err)
+		os.Exit(1)
+	}
+	out, _ := json.MarshalIndent(raw, "", "  ")
+	fmt.Println(string(out))
+}
