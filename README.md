@@ -63,7 +63,7 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --snmp-walk            Perform SNMP walk on IP address
 
 [Identity Management]
-      --cookie-and-account   Cookie analysis and CMS account enumeration using wordlist
+      --cookie-and-account   Cookie analysis and Wordpress/Drupal CMS account enumeration using wordlist
       --error-message-enum   Enumerate users via brute forcing login forms with username and password lists by analyzing error messages and status codes
       --hidden-directories   Discover hidden directories using wordlist
       --nonexistent-user-enum Enumerate users via brute forcing login forms with username list and fake password by analyzing error messages and status codes
