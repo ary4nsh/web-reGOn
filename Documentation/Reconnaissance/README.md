@@ -17,8 +17,15 @@ linux-reGOn --waf example.com
 linux-reGOn --waf example.com --port [port number]
 ```
 
+## WHOIS
+Use the `--whois` flag to query for Whois records:
+```
+linux-reGOn --whois example.com
+```
+
 ## Zone Transfer
 Use the `--zone-transfer` flag to perform a zone transfer on a domain, if applicable:
 ```
 linux-reGOn --zone-transfer example.com
+
 ```
