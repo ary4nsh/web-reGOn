@@ -494,6 +494,10 @@ func (w *WAFDetector) IsWAF() (bool, string) {
 	if w.isReblazeWAF() {
 		return true, "Reblaze (Reblaze) WAF detected."
 	}
+
+	if w.isReflectedNetworksWAF() {
+		return true, "Reflected Networks (Reflected Networks) WAF detected."
+	}
 	
 	if w.isRSFirewallWAF() {
 		return true, "RSFirewall (RSJoomla!) WAF detected."
@@ -629,6 +633,10 @@ func (w *WAFDetector) IsWAF() (bool, string) {
 	
 	if w.isVarnishOWASPWAF() {
 		return true, "Varnish (OWASP) WAF detected."
+	}
+
+	if w.isVercelWAF() {
+		return true, "Vercel WAF (Vercel) WAF detected."
 	}
 	
 	if w.isViettelWAF() {
@@ -1784,6 +1792,14 @@ func (w *WAFDetector) checkReblazeSchema02() bool {
 	return true
 }
 
+// isReflectedNetworksWAF checks for Reflected Networks
+func (w *WAFDetector) isReflectedNetworksWAF() bool {
+	return w.statusCode == 403 &&
+		w.matchContent(`<img class="logo loader" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAABHCAIAAAD6G8WcAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw`) &&
+		w.matchContent(`content="Request is denied"`) &&
+		w.matchContent(`<title>Forbidden</title>`)
+}
+
 // isRSFirewallWAF checks for RSFirewall (RSJoomla!)
 func (w *WAFDetector) isRSFirewallWAF() bool {
 	return w.matchContent(`(?i)com_rsfirewall_(\d{3}_forbidden|event)?`)
@@ -2171,9 +2187,10 @@ func (w *WAFDetector) isSucuriCloudProxyWAF() bool {
 		w.matchContent(`cloudproxy@sucuri\.net`)
 }
 
-// isTencentCloudWAF checks for Tencent Cloud Firewall
+// isTencentCloudWAF checks for Tencent Cloud Firewall (Tencent Technologies)
 func (w *WAFDetector) isTencentCloudWAF() bool {
-	return w.matchContent(`waf\.tencent\-?cloud\.com/`)
+	return w.matchContent(`waf\.tencent\-?cloud\.com/`) ||
+		w.matchContent(`window\.location\.href.{1,3}?https?://waf.tencent(?:-?cloud)?.com/(?:403|501)page\.html`)
 }
 
 // isTerosWAF checks for Teros (Citrix Systems)
@@ -2230,6 +2247,12 @@ func (w *WAFDetector) isVaritiWAF() bool {
 // isVarnishOWASPWAF checks for Varnish (OWASP)
 func (w *WAFDetector) isVarnishOWASPWAF() bool {
 	return w.matchContent(`Request rejected by xVarnish\-WAF`)
+}
+
+// isVercelWAF checks for Vercel WAF (Vercel)
+func (w *WAFDetector) isVercelWAF() bool {
+	return w.matchContent(`<title>Vercel Security Checkpoint</title>`) ||
+		w.matchContent(`/vercel/security/`)
 }
 
 // isViettelWAF checks for Viettel (Cloudrity)
