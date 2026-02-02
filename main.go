@@ -83,7 +83,9 @@ type Flags struct {
 	nonexistentUserEnum bool
 
 	// Broken Authentication
-	tls bool
+	tls               bool
+	rememberPassword  bool
+	cacheWeakness     bool
 
 	// Others
 	apiKey    string
@@ -141,7 +143,9 @@ var flagGroups = map[string]string{
 	"error-message-enum":    "Identity Management",
 	"nonexistent-user-enum": "Identity Management",
 
-	"tls": "Broken Authentication",
+	"tls":               "Broken Authentication",
+	"remember-password": "Broken Authentication",
+	"cache-weakness":   "Broken Authentication",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -156,7 +160,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.statusCodeEnum || flags.errorMessageEnum || flags.nonexistentUserEnum ||
 		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
 		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
-		flags.tls
+		flags.tls || flags.rememberPassword || flags.cacheWeakness
 }
 
 func main() {
@@ -346,7 +350,7 @@ func main() {
 				flags.snmpWalk || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
-				flags.nonexistentUserEnum || flags.tls || flags.waf || flags.zoneTransfer ||
+				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader
 
 			var URL, ipAddress string
@@ -526,6 +530,12 @@ func main() {
 				flags.tls: func() {
 					brokenauthorization.TlsTest(URL, flags.port)
 				},
+				flags.rememberPassword: func() {
+					brokenauthorization.ResetPassword(URL, flags.port)
+				},
+				flags.cacheWeakness: func() {
+					brokenauthorization.CacheWeakness(URL, flags.port)
+				},
 			}
 
 			for flag, function := range functions {
@@ -591,6 +601,8 @@ func main() {
 
 	// Broken Authentication
 	rootCmd.Flags().BoolVar(&flags.tls, "tls", false, "Test for TLS/SSL vulnerabilities")
+	rootCmd.Flags().BoolVar(&flags.rememberPassword, "remember-password", false, "Check reset password security")
+	rootCmd.Flags().BoolVar(&flags.cacheWeakness, "cache-weakness", false, "Check cache-related headers and meta tags for browser cache weakness")
 
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
