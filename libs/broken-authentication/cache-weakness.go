@@ -39,10 +39,16 @@ func CacheWeakness(url, port string) {
 	}
 	defer resp.Body.Close()
 
+	// Check if Cache-Control contains no-store (affects Pragma label)
+	cacheControlHasNoStore := false
+	if v := getHeaderValue(resp, "Cache-Control"); v != "" {
+		cacheControlHasNoStore = strings.Contains(strings.ToLower(v), "no-store")
+	}
+
 	// Print Cache-Control, Expires, Pragma (case-insensitive key lookup)
-	printHeaderWithLabel(resp, "Cache-Control")
-	printHeaderWithLabel(resp, "Expires")
-	printHeaderWithLabel(resp, "Pragma")
+	printHeaderWithLabel(resp, "Cache-Control", false)
+	printHeaderWithLabel(resp, "Expires", false)
+	printHeaderWithLabel(resp, "Pragma", cacheControlHasNoStore)
 
 	// Read HTML body
 	var buf bytes.Buffer
@@ -79,20 +85,30 @@ func CacheWeakness(url, port string) {
 	}
 }
 
-// printHeaderWithLabel gets the first value for the given header (case-insensitive),
-// prints the header and value, with [secure] or [insecure] in front when value matches rules.
-func printHeaderWithLabel(resp *http.Response, name string) {
-	var value string
-	var canonicalName string
+// getHeaderValue returns the first value for the given header (case-insensitive).
+func getHeaderValue(resp *http.Response, name string) string {
 	for k, v := range resp.Header {
 		if strings.EqualFold(k, name) && len(v) > 0 {
-			value = v[0]
+			return v[0]
+		}
+	}
+	return ""
+}
+
+// printHeaderWithLabel gets the first value for the given header (case-insensitive),
+// prints the header and value, with [secure] or [insecure] in front when value matches rules.
+// When printing Pragma: no-cache, [insecure] is only shown if cacheControlHasNoStore is false.
+func printHeaderWithLabel(resp *http.Response, name string, cacheControlHasNoStore bool) {
+	value := getHeaderValue(resp, name)
+	if value == "" {
+		return
+	}
+	var canonicalName string
+	for k := range resp.Header {
+		if strings.EqualFold(k, name) {
 			canonicalName = k
 			break
 		}
-	}
-	if value == "" {
-		return
 	}
 	valLower := strings.ToLower(strings.TrimSpace(value))
 
@@ -109,7 +125,7 @@ func printHeaderWithLabel(resp *http.Response, name string) {
 			label = cacheSecure
 		}
 	case "pragma":
-		if valLower == "no-cache" {
+		if valLower == "no-cache" && !cacheControlHasNoStore {
 			label = cacheInsecure
 		}
 	}
