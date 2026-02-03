@@ -25,6 +25,9 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
 
 ## Usage
 ```bash
+Usage:
+  linux-reGOn [url] [flags]
+
 [Reconnaissance]
   -D, --dns                  DNS Records
   -H, --http                 HTTP Status Code
@@ -49,6 +52,7 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --reverse-dns          Return DNS Pointer (PTR) record for a given IP address from viewdns.info
   -S, --shodan               Shodan Host IP Query
       --subdomain-discovery  Provide a comprehensive list of subdomains associated with a given domain from viewdns.info
+      --traceroute           Trace the network path from our test location to a given host from viewdns.info
 
 [Misconfiguration]
       --csp                  Analyse Content-Security-Policy header
@@ -85,9 +89,8 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --passlist             Password list file path
   -p, --port                 Port number to use with HTTP OPTIONS
   -t, --threads              Number of concurrent threads (default: 50)
-      --tracerout            Trace the network path from our test location to a given host from viewdns.info
       --userlist             Username list file path
-  -w, --wordlist             Wordlist file path
+  -w, --wordlist
 ```
 ## Input
 For Linux:
