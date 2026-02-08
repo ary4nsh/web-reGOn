@@ -25,9 +25,6 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
 
 ## Usage
 ```bash
-Usage:
-  linux-reGOn [url] [flags]
-
 [Reconnaissance]
   -D, --dns                  DNS Records
   -H, --http                 HTTP Status Code
@@ -76,7 +73,10 @@ Usage:
 [Broken Authentication]
       --cache-weakness       Check cache-related headers and meta tags for browser cache weakness
       --remember-password    Check reset password security
-      --tls                  Test for TLS/SSL vulnerabilities
+      --tls                  Test for TLS/SSL cipher suites security
+
+[Session Management]
+      --session-cookie       Analyse session cookie security
 
 [Other]
       --api-key              API key
@@ -90,7 +90,7 @@ Usage:
   -p, --port                 Port number to use with HTTP OPTIONS
   -t, --threads              Number of concurrent threads (default: 50)
       --userlist             Username list file path
-  -w, --wordlist
+  -w, --wordlist             Wordlist file path
 ```
 ## Input
 For Linux:
