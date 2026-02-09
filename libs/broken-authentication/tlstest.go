@@ -365,6 +365,36 @@ var cipherSuites = map[uint16]CipherDetails{
 	0xD001: {"TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256", "Transport Layer Security (TLS)", "Recommended", "Elliptic Curve Diffie-Hellman Ephemeral (ECDHE)", "Pre-Shared Key (PSK)", "Advanced Encryption Standard with 128bit key in Galois/Counter mode (AES 128 GCM)", "Secure Hash Algorithm 256 (SHA256)"},
 	0xD002: {"TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384", "Transport Layer Security (TLS)", "Recommended", "Elliptic Curve Diffie-Hellman Ephemeral (ECDHE)", "Pre-Shared Key (PSK)", "Advanced Encryption Standard with 256bit key in Galois/Counter mode (AES 256 GCM)", "Secure Hash Algorithm 384 (SHA384)"},
 	0xCCAC: {"TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256", "Transport Layer Security (TLS)", "Recommended", "Elliptic Curve Diffie-Hellman Ephemeral (ECDHE)", "Pre-Shared Key (PSK)", "ChaCha stream cipher and Poly1305 authenticator (CHACHA20 POLY1305)", "Secure Hash Algorithm 256 (SHA256)"},
+
+	// SSLv3 cipher suites
+	0x0081:  {"GOST2001-GOST89-GOST89", "SSLv3", "Insecure", "GOST Key Exchange", "GOST 28147-89", "GOST 256 Encryption", "GOST89IMIT Hash"},
+	0xFF85:  {"GOST2012256-GOST89-GOST89", "SSLv3", "Insecure", "GOST Key Exchange", "GOST 28147-89", "GOST 256 Encryption", "GOST89IMIT Hash"},
+	0x0066:  {"DHE-DSS-RC4-SHA", "SSLv3", "Insecure", "Diffie-Hellman (DH)", "Digital Signature Standard (DSS)", "RC4 (128-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA)"},
+	0xFEFF:  {"SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA", "SSLv3", "Insecure", "RSA Key Exchange", "RSA Authentication", "3DES (168-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA)"},
+	0xFFE0:  {"SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA", "SSLv3", "Insecure", "RSA Key Exchange", "RSA Authentication", "3DES (168-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA)"},
+	0x0063:  {"EXP1024-DHE-DSS-DES-CBC-SHA", "SSLv3", "Insecure", "Diffie-Hellman (1024-bit)", "Digital Signature Standard (DSS)", "DES (56-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA) (export)"},
+	0x0062:  {"EXP1024-DES-CBC-SHA", "SSLv3", "Insecure", "RSA (1024-bit) Key Exchange", "RSA Authentication", "DES (56-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA) (export)"},
+	0x0061:  {"EXP1024-RC2-CBC-MD5", "SSLv3", "Insecure", "RSA (1024-bit) Key Exchange", "RSA Authentication", "RC2 (56-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5) (export)"},
+	0xFEFE:  {"SSL_RSA_FIPS_WITH_DES_CBC_SHA", "SSLv3", "Insecure", "RSA Key Exchange", "RSA Authentication", "DES (56-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA)"},
+	0xFFE1:  {"SSL_RSA_FIPS_WITH_DES_CBC_SHA", "SSLv3", "Insecure", "RSA Key Exchange", "RSA Authentication", "DES (56-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA)"},
+	0x0065:  {"EXP1024-DHE-DSS-RC4-SHA", "SSLv3", "Insecure", "Diffie-Hellman (1024-bit)", "Digital Signature Standard (DSS)", "RC4 (56-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA) (export)"},
+	0x0064:  {"EXP1024-RC4-SHA", "SSLv3", "Insecure", "RSA (1024-bit) Key Exchange", "RSA Authentication", "RC4 (56-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA) (export)"},
+	0x0060:  {"EXP1024-RC4-MD5", "SSLv3", "Insecure", "RSA (1024-bit) Key Exchange", "RSA Authentication", "RC4 (56-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5) (export)"},
+	0x0083:  {"GOST2001-NULL-GOST94", "SSLv3", "Insecure", "GOST Key Exchange", "GOST Authentication", "None Encryption", "GOST94 Hash"},
+	0xFF87:  {"GOST2012256-NULL-STREEBOG256", "SSLv3", "Insecure", "GOST Key Exchange", "GOST Authentication", "None Encryption", "STREEBOG256 Hash"},
+
+	// SSLv2 cipher suites
+	0x0100: {"RC4-MD5", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "RC4 (128-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5)"},
+	0x0700: {"DES-CBC3-MD5", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "3DES (168-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5)"},
+	0x0701: {"DES-CBC3-SHA", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "3DES (168-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA)"},
+	0x0800: {"RC4-64-MD5", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "RC4 (64-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5)"},
+	0xFF80: {"DES-CFB-M1", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "DES (64-bit) Encryption", "HMAC M1"},
+	0x0600: {"DES-CBC-MD5", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "DES (56-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5)"},
+	0x0601: {"DES-CBC-SHA", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "DES (56-bit) Encryption", "HMAC Secure Hash Algorithm 1 (SHA)"},
+	0x0400: {"EXP-RC2-CBC-MD5", "SSLv2", "Insecure", "RSA (512-bit) Key Exchange", "RSA Authentication", "RC2 (40-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5) (export)"},
+	0x0200: {"EXP-RC4-MD5", "SSLv2", "Insecure", "RSA (512-bit) Key Exchange", "RSA Authentication", "RC4 (40-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5) (export)"},
+	0x0500: {"IDEA-CBC-MD5", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "IDEA (128-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5)"},
+	0x0300: {"RC2-CBC-MD5", "SSLv2", "Insecure", "RSA Key Exchange", "RSA Authentication", "RC2 (128-bit) Encryption", "HMAC Message-Digest Algorithm 5 (MD5)"},
 }
 
 type CipherDetails struct {
@@ -377,7 +407,7 @@ type CipherDetails struct {
 	Hash        string
 }
 
-// getCipherSuitesByVersion returns cipher suites compatible with a specific TLS version
+// getCipherSuitesByVersion returns cipher suites compatible with a specific TLS/SSL version
 func getCipherSuitesByVersion(version uint16) []uint16 {
 	var suites []uint16
 
@@ -387,9 +417,18 @@ func getCipherSuitesByVersion(version uint16) []uint16 {
 		return suites
 	}
 
-	// TLS 1.0, 1.1, 1.2 cipher suites (all others)
+	// SSLv3 cipher suites (version 0x0300)
+	if version == 0x0300 {
+		return []uint16{0x0081, 0xFF85, 0x0066, 0xFEFF, 0xFFE0, 0x0063, 0x0062, 0x0061, 0xFEFE, 0xFFE1, 0x0065, 0x0064, 0x0060, 0x0083, 0xFF87}
+	}
+
+	// SSLv2 cipher suites (version 0x0200)
+	if version == 0x0200 {
+		return []uint16{0x0100, 0x0700, 0x0701, 0x0800, 0xFF80, 0x0600, 0x0601, 0x0400, 0x0200, 0x0500, 0x0300}
+	}
+
+	// TLS 1.0, 1.1, 1.2 cipher suites (all from map except TLS 1.3 only)
 	for id := range cipherSuites {
-		// Skip TLS 1.3 cipher suites for older versions
 		if id != 0x1301 && id != 0x1302 && id != 0x1303 {
 			suites = append(suites, id)
 		}
@@ -493,6 +532,193 @@ func buildClientHello(version uint16, cipherSuites []uint16, serverName string) 
 	record.Write(recordData)
 
 	return record.Bytes()
+}
+
+// buildClientHelloSSLv3 builds an SSLv3 Client Hello (no extensions). Same as TLS 1.0 Client Hello but without extensions.
+func buildClientHelloSSLv3(version uint16, cipherSuites []uint16) []byte {
+	var handshakeBuf bytes.Buffer
+	handshakeBuf.WriteByte(byte(version >> 8))
+	handshakeBuf.WriteByte(byte(version & 0xFF))
+	random := make([]byte, 32)
+	for i := range random {
+		random[i] = byte(i)
+	}
+	handshakeBuf.Write(random)
+	handshakeBuf.WriteByte(0x00) // session_id_length
+	cipherSuitesLen := len(cipherSuites) * 2
+	handshakeBuf.WriteByte(byte(cipherSuitesLen >> 8))
+	handshakeBuf.WriteByte(byte(cipherSuitesLen & 0xFF))
+	for _, suite := range cipherSuites {
+		handshakeBuf.WriteByte(byte(suite >> 8))
+		handshakeBuf.WriteByte(byte(suite & 0xFF))
+	}
+	handshakeBuf.WriteByte(0x01)
+	handshakeBuf.WriteByte(0x00) // NULL compression — no extensions in SSLv3
+
+	var handshakeMsg bytes.Buffer
+	handshakeMsg.WriteByte(0x01) // Client Hello
+	handshakeData := handshakeBuf.Bytes()
+	handshakeMsg.WriteByte(byte(len(handshakeData) >> 16))
+	handshakeMsg.WriteByte(byte((len(handshakeData) >> 8) & 0xFF))
+	handshakeMsg.WriteByte(byte(len(handshakeData) & 0xFF))
+	handshakeMsg.Write(handshakeData)
+
+	var record bytes.Buffer
+	record.WriteByte(0x16) // Handshake
+	record.WriteByte(byte(version >> 8))
+	record.WriteByte(byte(version & 0xFF))
+	rd := handshakeMsg.Bytes()
+	record.WriteByte(byte(len(rd) >> 8))
+	record.WriteByte(byte(len(rd) & 0xFF))
+	record.Write(rd)
+	return record.Bytes()
+}
+
+// sendRawClientHelloSSLv3 sends an SSLv3 Client Hello over raw TCP and parses the Server Hello response.
+func sendRawClientHelloSSLv3(host, port string, version uint16, suites []uint16) (bool, uint16, uint16) {
+	addr := net.JoinHostPort(host, port)
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+	if err != nil {
+		return false, 0, 0
+	}
+	defer conn.Close()
+	conn.SetDeadline(time.Now().Add(5 * time.Second))
+
+	payload := buildClientHelloSSLv3(version, suites)
+	if _, err := conn.Write(payload); err != nil {
+		return false, 0, 0
+	}
+	data, err := readAllTLSData(conn, 5*time.Second)
+	if err != nil || len(data) == 0 {
+		return false, 0, 0
+	}
+	return parseServerHello(data)
+}
+
+// buildClientHelloSSLv2 builds an SSLv2 Client Hello. Cipher specs are 3 bytes each (SSLv2 wire format).
+func buildClientHelloSSLv2(cipherSpecs [][3]byte) []byte {
+	// SSLv2 record: high bit set = no padding. Length (2 bytes), type (1 = Client Hello), payload.
+	var payload bytes.Buffer
+	payload.WriteByte(0x00) // client_version major
+	payload.WriteByte(0x02) // client_version minor (SSLv2)
+	specsLen := len(cipherSpecs) * 3
+	payload.WriteByte(byte(specsLen >> 8))
+	payload.WriteByte(byte(specsLen & 0xFF))
+	payload.WriteByte(0x00)
+	payload.WriteByte(0x00) // session_id_length
+	challengeLen := 16
+	payload.WriteByte(byte(challengeLen >> 8))
+	payload.WriteByte(byte(challengeLen & 0xFF))
+	for _, spec := range cipherSpecs {
+		payload.Write(spec[:])
+	}
+	challenge := make([]byte, challengeLen)
+	for i := range challenge {
+		challenge[i] = byte(i)
+	}
+	payload.Write(challenge)
+
+	pl := payload.Bytes()
+	var record bytes.Buffer
+	recLen := 1 + len(pl) // type + payload
+	record.WriteByte(byte(recLen>>8) | 0x80) // high bit set = no padding
+	record.WriteByte(byte(recLen & 0xFF))
+	record.WriteByte(0x01) // SSLv2 Client Hello
+	record.Write(pl)
+	return record.Bytes()
+}
+
+// sslv2CipherSpec maps our 2-byte cipher ID to SSLv2 3-byte cipher spec (from OpenSSL-style encoding).
+var sslv2CipherSpecs = map[uint16][3]byte{
+	0x0100: {0x01, 0x00, 0x80}, // RC4-MD5
+	0x0700: {0x07, 0x00, 0xC0}, // DES-CBC3-MD5
+	0x0701: {0x07, 0x01, 0xC0}, // DES-CBC3-SHA
+	0x0800: {0x08, 0x00, 0x80}, // RC4-64-MD5
+	0xFF80: {0xFF, 0x80, 0x00}, // DES-CFB-M1
+	0x0600: {0x06, 0x00, 0x40}, // DES-CBC-MD5
+	0x0601: {0x06, 0x01, 0x40}, // DES-CBC-SHA
+	0x0400: {0x04, 0x00, 0x40}, // EXP-RC2-CBC-MD5
+	0x0200: {0x02, 0x00, 0x80}, // EXP-RC4-MD5
+	0x0500: {0x05, 0x00, 0x80}, // IDEA-CBC-MD5
+	0x0300: {0x03, 0x00, 0x80}, // RC2-CBC-MD5
+}
+
+// parseServerHelloSSLv2 parses SSLv2 Server Hello; returns true and connection_id/session_id if present.
+func parseServerHelloSSLv2(data []byte) (bool, uint16, uint16) {
+	if len(data) < 3 {
+		return false, 0, 0
+	}
+	// SSLv2 record: first byte has high bit; length in 2 bytes; type (4 = Server Hello)
+	off := 0
+	for off < len(data) {
+		if off+2 > len(data) {
+			break
+		}
+		b0, b1 := data[off], data[off+1]
+		off += 2
+		recLen := int(b0&0x7F)<<8 | int(b1)
+		if (b0 & 0x80) == 0 {
+			if off+1 > len(data) {
+				break
+			}
+			off++ // padding length
+		}
+		if off+1 > len(data) || off+recLen > len(data) {
+			break
+		}
+		msgType := data[off]
+		off++
+		recLen--
+		if msgType == 0x04 { // Server Hello
+			// session_id_hit(1), certificate_type(1), version(2), certificate_length(2), cipher_specs_length(2), connection_id_length(2)
+			if recLen >= 11 && off+10 <= len(data) {
+				off += 2                                      // session_id_hit, certificate_type
+				off += 2                                      // server version
+				certLen := int(data[off])<<8 | int(data[off+1])
+				off += 2
+				cipherSpecsLen := int(data[off])<<8 | int(data[off+1])
+				off += 2
+				off += 2 // connection_id_length
+				if off+certLen+cipherSpecsLen <= len(data) {
+					off += certLen + cipherSpecsLen
+					return true, 0, 0 // SSLv2 success; cipher not in 2-byte form
+				}
+			}
+		}
+		off += recLen
+	}
+	return false, 0, 0
+}
+
+// sendRawClientHelloSSLv2 sends an SSLv2 Client Hello over raw TCP and parses the Server Hello response.
+func sendRawClientHelloSSLv2(host, port string, suites []uint16) (bool, uint16, uint16) {
+	var specs [][3]byte
+	for _, id := range suites {
+		if spec, ok := sslv2CipherSpecs[id]; ok {
+			specs = append(specs, spec)
+		}
+	}
+	if len(specs) == 0 {
+		return false, 0, 0
+	}
+	addr := net.JoinHostPort(host, port)
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+	if err != nil {
+		return false, 0, 0
+	}
+	defer conn.Close()
+	conn.SetDeadline(time.Now().Add(5 * time.Second))
+
+	payload := buildClientHelloSSLv2(specs)
+	if _, err := conn.Write(payload); err != nil {
+		return false, 0, 0
+	}
+	data, err := readAllTLSData(conn, 5*time.Second)
+	if err != nil || len(data) == 0 {
+		return false, 0, 0
+	}
+	ok, _, _ := parseServerHelloSSLv2(data)
+	return ok, 0x0200, 0 // SSLv2 version; cipher not in 2-byte form
 }
 
 // parseServerHello parses the Server Hello response and returns if certificate exchange occurred
@@ -620,8 +846,25 @@ func parseServerHello(data []byte) (bool, uint16, uint16) {
 	return false, 0, 0
 }
 
-// testCipherSuiteForVersion tests a single cipher suite for a specific TLS version using Go's TLS library
+// testCipherSuiteForVersion tests a single cipher suite for a specific TLS version
 func testCipherSuiteForVersion(host, port string, tlsVersion uint16, cipherSuite uint16) (bool, uint16, uint16) {
+	// SSLv3: send raw Client Hello with single suite
+	if tlsVersion == 0x0300 {
+		ok, ver, chosen := sendRawClientHelloSSLv3(host, port, 0x0300, []uint16{cipherSuite})
+		if ok && chosen == cipherSuite {
+			return true, ver, chosen
+		}
+		return ok, ver, chosen
+	}
+	// SSLv2: send raw Client Hello with single suite (server accepts or not; we report cipherSuite as chosen if ok)
+	if tlsVersion == 0x0200 {
+		ok, _, _ := sendRawClientHelloSSLv2(host, port, []uint16{cipherSuite})
+		if ok {
+			return true, 0x0200, cipherSuite
+		}
+		return false, 0, 0
+	}
+
 	// Check if this cipher suite is supported by Go
 	filtered := filterSupportedCipherSuites([]uint16{cipherSuite})
 	if len(filtered) == 0 {
@@ -741,8 +984,16 @@ func filterSupportedCipherSuites(suites []uint16) []uint16 {
 }
 
 // sendClientHelloWithAllSuites sends a Client Hello with all cipher suites and checks for Server Hello with certificate
-// Uses Go's TLS library for reliable handshake
 func sendClientHelloWithAllSuites(host, port string, tlsVersion uint16, suites []uint16) (bool, uint16, uint16) {
+	// SSLv3: send raw Client Hello (Go's crypto/tls does not support SSLv3)
+	if tlsVersion == 0x0300 {
+		return sendRawClientHelloSSLv3(host, port, 0x0300, suites)
+	}
+	// SSLv2: send raw Client Hello (Go's crypto/tls does not support SSLv2)
+	if tlsVersion == 0x0200 {
+		return sendRawClientHelloSSLv2(host, port, suites)
+	}
+
 	addr := net.JoinHostPort(host, port)
 
 	// Filter to only supported cipher suites (Go's TLS library will reject unsupported ones)
@@ -887,6 +1138,12 @@ func TlsTest(host, port string) {
 	}
 
 	fmt.Printf("Testing %s  …\n", URL)
+
+	// Test SSLv2
+	testTLSVersion(host, port, 0x0200, "SSLv2")
+
+	// Test SSLv3
+	testTLSVersion(host, port, 0x0300, "SSLv3")
 
 	// Test TLS 1.0
 	testTLSVersion(host, port, 0x0301, "TLS 1.0")
