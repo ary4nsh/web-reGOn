@@ -76,6 +76,7 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --tls                  Test for TLS/SSL cipher suites security
 
 [Session Management]
+      --cache-control        Check Cache-Control, Expires, and Strict-Transport-Security headers
       --session-cookie       Analyse session cookie security
 
 [Other]
