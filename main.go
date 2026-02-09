@@ -89,7 +89,8 @@ type Flags struct {
 	cacheWeakness    bool
 
 	// Session Management
-	sessionCookie bool
+	sessionCookie  bool
+	cacheControl  bool
 
 	// Others
 	apiKey    string
@@ -152,6 +153,7 @@ var flagGroups = map[string]string{
 	"cache-weakness":   "Broken Authentication",
 
 	"session-cookie":   "Session Management",
+	"cache-control":    "Session Management",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -166,7 +168,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.statusCodeEnum || flags.errorMessageEnum || flags.nonexistentUserEnum ||
 		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
 		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
-		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie
+		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl
 }
 
 func main() {
@@ -356,7 +358,7 @@ func main() {
 				flags.snmpWalk || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
-				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.waf || flags.zoneTransfer ||
+				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader
 
 			var URL, ipAddress string
@@ -547,6 +549,9 @@ func main() {
 				flags.sessionCookie: func() {
 					sessionmanagement.SessionCookie(URL, flags.port)
 				},
+				flags.cacheControl: func() {
+					sessionmanagement.CacheControl(URL, flags.port)
+				},
 			}
 
 			for flag, function := range functions {
@@ -617,7 +622,8 @@ func main() {
 
 	// Session Management
 	rootCmd.Flags().BoolVarP(&flags.sessionCookie, "session-cookie", "", false, "Analyse session cookie security")
-	
+	rootCmd.Flags().BoolVarP(&flags.cacheControl, "cache-control", "", false, "Check Cache-Control, Expires, and Strict-Transport-Security headers")
+
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
