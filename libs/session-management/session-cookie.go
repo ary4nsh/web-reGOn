@@ -1,12 +1,20 @@
 package sessionmanagement
 
 import (
+	"bufio"
+	"bytes"
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 var userAgents = []string{
@@ -114,6 +122,128 @@ func SessionCookie(urlStr, port string) {
 	for _, cookieStr := range setCookies {
 		analyzeAndPrintCookie("Set-Cookie", cookieStr)
 	}
+
+	// Optional: decode a cookie value from user
+	line, _ := readLineWithEditing("Enter cookie value to decode (or press Enter to skip): ")
+	cookieValue := strings.TrimSpace(line)
+	if cookieValue != "" {
+		tryDecodeCookieValue(cookieValue)
+	}
+}
+
+// tryDecodeCookieValue tries to decode the cookie value: base64 (size multiple of 4),
+// MD5 (16 bytes raw or 32 hex chars), ASCII (only 0-9 and a-f, even size; hex-decode then interpret as ASCII).
+func tryDecodeCookieValue(s string) {
+	fmt.Println()
+
+	// Base64: only when size is multiple of 4
+	if len(s)%4 != 0 {
+		fmt.Println("- Base64 decode: not available (size is not a multiple of 4)")
+	} else {
+		decodedBytes, err := base64.StdEncoding.DecodeString(s)
+		if err != nil {
+			fmt.Println("- Base64 decode: not available (invalid base64 data)")
+		} else {
+			fmt.Println("- Base64 decoded:", formatDecodedBytes(decodedBytes))
+		}
+	}
+
+	// MD5 decode: only when string is 16 or 32 hex chars (0-9, a-f)
+	if (len(s) != 16 && len(s) != 32) || !isHexString(s) {
+		fmt.Println("- MD5 decode: not available (size is not 16 or 32 hex characters)")
+	} else {
+		hashBytes, err := hex.DecodeString(s)
+		if err != nil {
+			fmt.Println("- MD5 decode: not available (invalid hex data)")
+		} else {
+			// Only offer cracking for 32-char (16-byte) MD5 hashes
+			if len(hashBytes) == 16 {
+				tryCrackMD5WithWordlist(hashBytes)
+			}
+		}
+	}
+
+	// ASCII: only 0-9 and a-f (case insensitive), even size; hex-decode then must be printable text (UTF-8)
+	if len(s)%2 != 0 || !isHexString(s) {
+		fmt.Println("- ASCII decode: not available (the string is not ASCII encoded)")
+	} else {
+		decodedBytes, err := hex.DecodeString(s)
+		if err != nil {
+			fmt.Println("- ASCII decode: not available (the string is not ASCII encoded)")
+		} else if !isPrintableUTF8(decodedBytes) {
+			fmt.Println("- ASCII decode: not available (the string is not ASCII encoded)")
+		} else {
+			fmt.Println("- ASCII decoded:", string(decodedBytes))
+		}
+	}
+}
+
+// tryCrackMD5WithWordlist prompts for a wordlist path and tries to crack the given 16-byte MD5 hash.
+func tryCrackMD5WithWordlist(hashBytes []byte) {
+	pathLine, _ := readLineWithEditing("Enter wordlist path to crack MD5 (or press Enter to skip): ")
+	path := strings.TrimSpace(pathLine)
+	if path == "" {
+		return
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		fmt.Println("- Could not open wordlist:", err)
+		return
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		sum := md5.Sum([]byte(line))
+		if bytes.Equal(sum[:], hashBytes) {
+			fmt.Println("- MD5 decode:", line)
+			return
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println("- Error reading wordlist:", err)
+		return
+	}
+	fmt.Println("- MD5 not found in wordlist.")
+}
+
+func isHexString(s string) bool {
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+
+func isPrintableASCII(s string) bool {
+	for _, r := range s {
+		if r > unicode.MaxASCII || !unicode.IsPrint(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// isPrintableUTF8 reports whether b is valid UTF-8 and all runes are printable (e.g. hex-decoded "Hello World!").
+func isPrintableUTF8(b []byte) bool {
+	s := string(b)
+	if !utf8.ValidString(s) {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsPrint(r) && !unicode.IsSpace(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func formatDecodedBytes(b []byte) string {
+	if isPrintableASCII(string(b)) {
+		return string(b)
+	}
+	return hex.EncodeToString(b)
 }
 
 func analyzeAndPrintCookie(headerName, cookieStr string) {
