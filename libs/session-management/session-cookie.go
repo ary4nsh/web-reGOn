@@ -180,7 +180,7 @@ func tryDecodeCookieValue(s string) {
 
 // tryCrackMD5WithWordlist prompts for a wordlist path and tries to crack the given 16-byte MD5 hash.
 func tryCrackMD5WithWordlist(hashBytes []byte) {
-	pathLine, _ := readLineWithEditing("Enter wordlist path to crack MD5 (or press Enter to skip): ")
+	pathLine, _ := readLineWithEditing("This hash is 16 bytes long, so it might be a MD5 hash. Enter wordlist path to crack MD5 (or press Enter to skip): ")
 	path := strings.TrimSpace(pathLine)
 	if path == "" {
 		return
