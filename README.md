@@ -80,8 +80,8 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --session-cookie       Analyse session cookie security
 
 [Weak Cryptography]
-      --drown                Test for SSLv2 DROWN vulnerability
-      --lucky13              Test for CVE-2013-0169 (Lucky 13) TLS CBC vulnerability
+      --drown                Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities
+      --lucky13              Test for Lucky 13 (CVE-2013-0169) TLS CBC vulnerability
 
 [Other]
       --api-key              API key
