@@ -31,9 +31,9 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/snmp"
 
 	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
-
 	brokenauthorization "github.com/ary4nsh/web-reGOn/libs/broken-authentication"
 	sessionmanagement "github.com/ary4nsh/web-reGOn/libs/session-management"
+	weakcryptography "github.com/ary4nsh/web-reGOn/libs/weak-cryptography"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -91,6 +91,10 @@ type Flags struct {
 	// Session Management
 	sessionCookie  bool
 	cacheControl  bool
+
+	// Weak Cryptography
+	drown   bool
+	lucky13 bool
 
 	// Others
 	apiKey    string
@@ -154,6 +158,9 @@ var flagGroups = map[string]string{
 
 	"session-cookie":   "Session Management",
 	"cache-control":    "Session Management",
+
+	"drown":   "Weak Cryptography",
+	"lucky13": "Weak Cryptography",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -168,7 +175,8 @@ func anyFlagSet(flags Flags) bool {
 		flags.statusCodeEnum || flags.errorMessageEnum || flags.nonexistentUserEnum ||
 		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
 		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
-		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl
+		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl ||
+		flags.drown || flags.lucky13
 }
 
 func main() {
@@ -358,7 +366,7 @@ func main() {
 				flags.snmpWalk || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
-				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.waf || flags.zoneTransfer ||
+				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader
 
 			var URL, ipAddress string
@@ -552,6 +560,14 @@ func main() {
 				flags.cacheControl: func() {
 					sessionmanagement.CacheControl(URL, flags.port)
 				},
+
+				// Weak Cryptography
+				flags.drown: func() {
+					weakcryptography.DROWN(URL, flags.port)
+				},
+				flags.lucky13: func() {
+					weakcryptography.Lucky13(URL, flags.port)
+				},
 			}
 
 			for flag, function := range functions {
@@ -624,6 +640,10 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.sessionCookie, "session-cookie", "", false, "Analyse session cookie security")
 	rootCmd.Flags().BoolVarP(&flags.cacheControl, "cache-control", "", false, "Check Cache-Control, Expires, and Strict-Transport-Security headers")
 
+	// Weak Cryptography
+	rootCmd.Flags().BoolVar(&flags.drown, "drown", false, "Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities")
+	rootCmd.Flags().BoolVar(&flags.lucky13, "lucky13", false, "Test for Lucky 13 (CVE-2013-0169) TLS CBC vulnerability")
+
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
 	rootCmd.Flags().StringVarP(&flags.domain, "domain", "", "", "Domain to search for email")
@@ -657,7 +677,7 @@ func main() {
 			groups[group] = append(groups[group], line)
 		})
 
-		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Other"}
+		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Weak Cryptography", "Other"}
 		for _, group := range order {
 			if lines, ok := groups[group]; ok {
 				fmt.Printf("[%s]\n", group)
