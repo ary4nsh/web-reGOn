@@ -79,6 +79,10 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --cache-control        Check Cache-Control, Expires, and Strict-Transport-Security headers
       --session-cookie       Analyse session cookie security
 
+[Weak Cryptography]
+      --drown                Test for SSLv2 DROWN vulnerability
+      --lucky13              Test for CVE-2013-0169 (Lucky 13) TLS CBC vulnerability
+
 [Other]
       --api-key              API key
       --domain               Domain to search for email
