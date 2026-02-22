@@ -93,8 +93,10 @@ type Flags struct {
 	cacheControl  bool
 
 	// Weak Cryptography
-	drown   bool
-	lucky13 bool
+	drown            bool
+	lucky13          bool
+	beast            bool
+	anonymousCiphers bool
 
 	// Others
 	apiKey    string
@@ -159,8 +161,10 @@ var flagGroups = map[string]string{
 	"session-cookie":   "Session Management",
 	"cache-control":    "Session Management",
 
-	"drown":   "Weak Cryptography",
-	"lucky13": "Weak Cryptography",
+	"drown":             "Weak Cryptography",
+	"lucky13":           "Weak Cryptography",
+	"beast":             "Weak Cryptography",
+	"anonymous-ciphers": "Weak Cryptography",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -176,7 +180,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
 		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
 		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl ||
-		flags.drown || flags.lucky13
+		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers
 }
 
 func main() {
@@ -366,7 +370,7 @@ func main() {
 				flags.snmpWalk || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
-				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.waf || flags.zoneTransfer ||
+				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader
 
 			var URL, ipAddress string
@@ -568,6 +572,12 @@ func main() {
 				flags.lucky13: func() {
 					weakcryptography.Lucky13(URL, flags.port)
 				},
+				flags.beast: func() {
+					weakcryptography.BEAST(URL, flags.port)
+				},
+				flags.anonymousCiphers: func() {
+					weakcryptography.AnonymousCiphers(URL, flags.port)
+				},
 			}
 
 			for flag, function := range functions {
@@ -643,6 +653,8 @@ func main() {
 	// Weak Cryptography
 	rootCmd.Flags().BoolVar(&flags.drown, "drown", false, "Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities")
 	rootCmd.Flags().BoolVar(&flags.lucky13, "lucky13", false, "Test for Lucky 13 (CVE-2013-0169) TLS CBC vulnerability")
+	rootCmd.Flags().BoolVar(&flags.beast, "beast", false, "Test for BEAST (CVE-2011-3389) SSLv3/TLS 1.0 CBC vulnerability")
+	rootCmd.Flags().BoolVar(&flags.anonymousCiphers, "anonymous-ciphers", false, "Test for anonymous (anon) and NULL cipher suites")
 
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
