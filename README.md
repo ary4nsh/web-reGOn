@@ -80,9 +80,10 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --session-cookie       Analyse session cookie security
 
 [Weak Cryptography]
-      --anonymous-ciphers    Test for anonymous and NULL cipher suites (insecure)
+      --anonymous-ciphers    Test for anonymous (anon) and NULL cipher suites vulnerability
       --beast                Test for BEAST (CVE-2011-3389) SSLv3/TLS 1.0 CBC vulnerability
       --drown                Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities
+      --freak                Test for FREAK (CVE-2015-0204) export RSA cipher suites vulnerability
       --lucky13              Test for Lucky 13 (CVE-2013-0169) TLS CBC vulnerability
 
 [Other]
