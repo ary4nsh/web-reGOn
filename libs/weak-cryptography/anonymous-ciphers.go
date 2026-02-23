@@ -11,7 +11,7 @@ import (
 const anonCipherConnectTimeout = 10 * time.Second
 const anonCipherHandshakeTimeout = 5 * time.Second
 
-// anonymousCipherSuite is a cipher suite that it's authentication is anonymous (anon) or uses NULL encryption/auth.
+// anonymousCipherSuite is a cipher suite whose authentication is anonymous (anon).
 var anonymousCipherSuites = []struct {
 	ID   uint16
 	Name string
@@ -38,33 +38,11 @@ var anonymousCipherSuites = []struct {
 	{0x001A, "TLS_DH_anon_WITH_DES_CBC_SHA"},
 	{0x0018, "TLS_DH_anon_WITH_RC4_128_MD5"},
 	{0x009B, "TLS_DH_anon_WITH_SEED_CBC_SHA"},
-	{0x002D, "TLS_DHE_PSK_WITH_NULL_SHA"},
-	{0x00B4, "TLS_DHE_PSK_WITH_NULL_SHA256"},
-	{0x00B5, "TLS_DHE_PSK_WITH_NULL_SHA384"},
 	{0xC017, "TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA"},
 	{0xC018, "TLS_ECDH_anon_WITH_AES_128_CBC_SHA"},
 	{0xC019, "TLS_ECDH_anon_WITH_AES_256_CBC_SHA"},
 	{0xC015, "TLS_ECDH_anon_WITH_NULL_SHA"},
 	{0xC016, "TLS_ECDH_anon_WITH_RC4_128_SHA"},
-	{0xC001, "TLS_ECDH_ECDSA_WITH_NULL_SHA"},
-	{0xC006, "TLS_ECDHE_ECDSA_WITH_NULL_SHA"},
-	{0xC039, "TLS_ECDHE_PSK_WITH_NULL_SHA"},
-	{0xC03A, "TLS_ECDHE_PSK_WITH_NULL_SHA256"},
-	{0xC03B, "TLS_ECDHE_PSK_WITH_NULL_SHA384"},
-	{0xC010, "TLS_ECDHE_RSA_WITH_NULL_SHA"},
-	{0xC00B, "TLS_ECDH_RSA_WITH_NULL_SHA"},
-	{0x0000, "TLS_NULL_WITH_NULL_NULL"},
-	{0x002C, "TLS_PSK_WITH_NULL_SHA"},
-	{0x00B0, "TLS_PSK_WITH_NULL_SHA256"},
-	{0x00B1, "TLS_PSK_WITH_NULL_SHA384"},
-	{0x002E, "TLS_RSA_PSK_WITH_NULL_SHA"},
-	{0x00B8, "TLS_RSA_PSK_WITH_NULL_SHA256"},
-	{0x00B9, "TLS_RSA_PSK_WITH_NULL_SHA384"},
-	{0x0001, "TLS_RSA_WITH_NULL_MD5"},
-	{0x0002, "TLS_RSA_WITH_NULL_SHA"},
-	{0x003B, "TLS_RSA_WITH_NULL_SHA256"},
-	{0xC0B4, "TLS_SHA256_SHA256"},
-	{0xC0B5, "TLS_SHA384_SHA384"},
 }
 
 // TLS version constants (wire format)
@@ -221,7 +199,6 @@ func tryAnonymousCipherRaw(host, port string, cipherID uint16, version uint16) b
 // urlStr is the target URL (e.g. from args[0]); port is optional (e.g. from --port).
 // URL/port normalization is the same as DROWN: no port -> https/443; 80 -> http; other -> http://host:port.
 // Tests for cipher suites that contain "anon" or "NULL" in their name (from ssltlstest.go).
-// Output format matches drown.go/lucky13.go: Target, status, list of supported anonymous/NULL ciphers.
 func AnonymousCiphers(urlStr, port string) {
 	displayURL, host, portForConn, err := normalizeTarget(urlStr, port)
 	if err != nil {
