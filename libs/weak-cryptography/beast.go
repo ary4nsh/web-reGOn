@@ -150,7 +150,6 @@ func tryCipherSuiteBeast(host, port string, version uint16, cipherID uint16) boo
 // urlStr is the target URL (e.g. from args[0]); port is optional (e.g. from --port).
 // URL/port normalization is the same as DROWN: no port -> https/443; 80 -> http; other -> http://host:port.
 // BEAST affects SSLv3 and TLS 1.0 with CBC ciphers. Both SSLv3 (wire-level) and TLS 1.0 are tested.
-// Output format matches drown.go/lucky13.go: Target, vulnerability status, support protocols, vulnerable ciphers list.
 func BEAST(urlStr, port string) {
 	displayURL, host, portForConn, err := normalizeTarget(urlStr, port)
 	if err != nil {
