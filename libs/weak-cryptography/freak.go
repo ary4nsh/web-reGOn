@@ -10,7 +10,6 @@ const freakConnectTimeout = 10 * time.Second
 const freakHandshakeTimeout = 5 * time.Second
 
 // RSA export cipher suites (FREAK - CVE-2015-0204). Names contain RSA_EXPORT.
-// From ssltlstest.go.
 var freakCipherSuites = []struct {
 	ID   uint16
 	Name string
@@ -52,7 +51,7 @@ func tryFreakCipher(host, port string, cipherID uint16, version uint16) bool {
 // FREAK runs the FREAK (CVE-2015-0204) export RSA cipher check and prints results.
 // urlStr is the target URL (e.g. from args[0]); port is optional (e.g. from --port).
 // URL/port normalization is the same as DROWN: no port -> https/443; 80 -> http; other -> http://host:port.
-// Tests for cipher suites containing RSA_EXPORT in their name (from ssltlstest.go).
+// Tests for cipher suites containing RSA_EXPORT in their name
 // Probes TLS 1.0, 1.1, 1.2, and 1.3 using tryFreakCipher.
 func FREAK(urlStr, port string) {
 	displayURL, host, portForConn, err := normalizeTarget(urlStr, port)
