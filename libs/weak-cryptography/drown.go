@@ -346,7 +346,6 @@ func hasExtraClearBug(host, port string, cipherName string) bool {
 	}
 	keyLen := cipher.keyLength
 	encKeyLen := cipher.encryptedKeyLength
-	// Wrong: clear_key one byte longer than intended (bug probe)
 	clearLen := keyLen - encKeyLen + 1
 	if clearLen < 0 {
 		clearLen = 1
