@@ -181,8 +181,14 @@ func unique(strings []string) []string {
 	return uniqueStrings
 }
 
-// SNMPEnumUsers is a function that takes an IP address and enumerates users.
-func SNMPEnumUsers(ipAddress string) {
-	enumerator := NewSNMPUserEnumerator(ipAddress, 161, "public") // Default SNMP port is 161
+// SNMPEnumUsers enumerates users on the SNMP agent. port defaults to 161 if empty or invalid.
+func SNMPEnumUsers(ipAddress, port string) {
+	portNum := uint16(161)
+	if port != "" {
+		if p, err := strconv.Atoi(port); err == nil && p >= 0 && p <= 65535 {
+			portNum = uint16(p)
+		}
+	}
+	enumerator := NewSNMPUserEnumerator(ipAddress, portNum, "public")
 	enumerator.Run()
 }
