@@ -1,5 +1,5 @@
 ## DNS Records
-Use the `--dns` or `-D` flag to obtain the DNS records of a target:
+Use the `--dns` or `-D` flag to obtain the A, AAAA, CNAME, MX, NS, TXT, SOA, HINFO, SRV, CAA, LOC, DS, DNSKEY and PTR dns records of a target:
 ```
 linux-reGOn --dns example.com
 ```
@@ -17,15 +17,8 @@ linux-reGOn --waf example.com
 linux-reGOn --waf example.com --port [port number]
 ```
 
-## WHOIS
-Use the `--whois` flag to query for Whois records:
-```
-linux-reGOn --whois example.com
-```
-
 ## Zone Transfer
 Use the `--zone-transfer` flag to perform a zone transfer on a domain, if applicable:
 ```
 linux-reGOn --zone-transfer example.com
-
 ```
