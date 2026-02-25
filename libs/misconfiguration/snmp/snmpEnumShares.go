@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -14,9 +15,16 @@ const (
 	community   = "public"
 )
 
-func SNMPEnumShares(ipAddress string) {
+// SNMPEnumShares enumerates shares via SNMP. port defaults to 161 if empty or invalid.
+func SNMPEnumShares(ipAddress, port string) {
+	portNum := "161"
+	if port != "" {
+		if _, err := strconv.Atoi(port); err == nil {
+			portNum = port
+		}
+	}
 	// Create a UDP connection
-	conn, err := net.Dial("udp", fmt.Sprintf("%s:161", ipAddress))
+	conn, err := net.Dial("udp", net.JoinHostPort(ipAddress, portNum))
 	if err != nil {
 		log.Fatalf("Error connecting to SNMP agent: %v", err)
 	}
