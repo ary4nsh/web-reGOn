@@ -31,3 +31,22 @@ Pragma directives:
 ```
 ./linux-reGOn --cache-control [domain name] --port [port number]
 ```
+
+
+## Session Cookie
+
+Use the `--session-cookie` flag to receive and analyze the Cache-Control, Strict-Transport-Security, and Expires headers and their values.
+
+Using this flag, the Set-Cookie header received from the response will be printed. Then, three decoding methods (Base64, MD5, and ASCII hex) will be offered. You can input the encoded cookie value to decode it using a wordlist to generate a meaningful string (if possible) or press Enter if you don't want to decode it.
+
+The presence of the HttpOnly attribute is necessary in front of the Set-Cookie header because it prevents the session from being exposed.
+
+If both HttpOnly and SameSite are missing, it can create an XSS vulnerability that allows an attacker to steal the cookie.
+
+The SameSite attribute must not be set to "None" to prevent sending it to any unauthorized third-party domain, thus mitigating the risk of CSRF attacks.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+
+```
+./linux-reGOn --session-cookie [domain name] --port [port number]
+```
