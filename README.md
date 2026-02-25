@@ -14,10 +14,10 @@ cd web-reGOn
 go mod download
 
 # Build the binary
-go build -o linux-reGOn
+go build -o web-reGOn
 
 # Run the tool
-./linux-reGOn --help
+./web-reGOn --help
 ```
 
 ## Documentation
@@ -105,18 +105,18 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
 ## Input
 For Linux:
 ```bash
-sudo chmod +x linux-reGOn
-./linux-reGOn [Flag(s)] $URL
+sudo chmod +x web-reGOn
+./web-reGOn [Flag(s)] $URL
 ```
 
 ## Examples
 ```
 # DNS records lookup
-./linux-reGOn --dns example.com
+./web-reGOn --dns example.com
 
 # Discover hidden directories
-./linux-reGOn --hidden-directories --wordlist wordlist.txt example.com
+./web-reGOn --hidden-directories --wordlist wordlist.txt example.com
 
 # SNMP enumeration
-./linux-reGOn 192.168.1.1 --snmp-walk
+./web-reGOn --snmp-walk 192.168.1.1 --port 20161
 ```
