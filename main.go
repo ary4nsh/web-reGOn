@@ -373,7 +373,7 @@ func main() {
 			}
 
 			requiresTarget := flags.dnsFlag || flags.httpFlag || flags.httpOptions || flags.hstsHeader ||
-				flags.ftpScan || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
+				flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
@@ -685,7 +685,7 @@ func main() {
 
 	rootCmd.SetUsageFunc(func(cmd *cobra.Command) error {
 		fmt.Println("Usage:")
-		fmt.Println("  linux-reGOn [url] [flags]")
+		fmt.Println("  web-reGOn [url] [flags]")
 		fmt.Println()
 
 		groups := make(map[string][]string)
