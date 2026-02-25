@@ -5,26 +5,32 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
 
-func FTPScan(ipAddress string) {
-	// FTP standard port
-	port := 21
+// FTPScan scans an FTP server at ipAddress. port defaults to 21 if empty or invalid.
+func FTPScan(ipAddress, port string) {
+	portNum := 21
+	if port != "" {
+		if p, err := strconv.Atoi(port); err == nil {
+			portNum = p
+		}
+	}
 	
 	// Format address based on whether it's IPv6 or IPv4
 	// IPv6 addresses need to be enclosed in square brackets when specifying port
 	var address string
 	if strings.Contains(ipAddress, ":") && !strings.Contains(ipAddress, "[") {
 		// This is likely an IPv6 address that needs to be properly formatted
-		address = fmt.Sprintf("[%s]:%d", ipAddress, port)
+		address = fmt.Sprintf("[%s]:%d", ipAddress, portNum)
 	} else if strings.Contains(ipAddress, "[") && strings.Contains(ipAddress, "]") {
 		// User already provided IPv6 with brackets, just add port
-		address = fmt.Sprintf("%s:%d", ipAddress, port)
+		address = fmt.Sprintf("%s:%d", ipAddress, portNum)
 	} else {
 		// Regular IPv4 address
-		address = fmt.Sprintf("%s:%d", ipAddress, port)
+		address = fmt.Sprintf("%s:%d", ipAddress, portNum)
 	}
 
 	// Connect to the FTP server with timeout
@@ -62,7 +68,7 @@ func FTPScan(ipAddress string) {
 		}
 		
 		// Always check for anonymous login, regardless of previous errors
-		allowed, response := checkAnonymousLogin(ipAddress, port, false)
+		allowed, response := checkAnonymousLogin(ipAddress, portNum, false)
 		if allowed {
 			fmt.Println("\n- Anonymous login: Allowed")
 		} else {
@@ -72,7 +78,7 @@ func FTPScan(ipAddress string) {
 			}
 			
 			// If regular anonymous login failed, try with TLS
-			allowedTLS, responseTLS := checkAnonymousLogin(ipAddress, port, true)
+			allowedTLS, responseTLS := checkAnonymousLogin(ipAddress, portNum, true)
 			if allowedTLS {
 				fmt.Println("\n- Anonymous login with TLS: Allowed")
 			} else if strings.Contains(response, "SSL/TLS required") || 
@@ -224,7 +230,7 @@ func FTPScan(ipAddress string) {
 		
 		// If TLS is required or we got no features and FEAT command was understood, try with TLS
 		if requiresTLS || (len(features) == 0 && featCommandUnderstood) {
-			tlsFeatures := getFeaturesWithTLS(ipAddress, port)
+			tlsFeatures := getFeaturesWithTLS(ipAddress, portNum)
 			if len(tlsFeatures) > 0 {
 				// Format the features similar to Shodan output
 				fmt.Println("211-Features:")
@@ -240,7 +246,7 @@ func FTPScan(ipAddress string) {
 			
 			// Try to get help commands via TLS if regular help command was understood
 			if helpCommandUnderstood {
-				tlsHelpCommands := getHelpCommandsWithTLS(ipAddress, port)
+				tlsHelpCommands := getHelpCommandsWithTLS(ipAddress, portNum)
 				if len(tlsHelpCommands) > 0 {
 					processAndPrintCommands(tlsHelpCommands)
 				}
