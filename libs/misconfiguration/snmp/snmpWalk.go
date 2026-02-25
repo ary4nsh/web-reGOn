@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -14,7 +15,8 @@ const (
 	snmpVersion2c = 0x01
 
 	// PDU types
-	getNextRequest  = 0xa1
+	getRequest     = 0xa0
+	getNextRequest = 0xa1
 
 	// Variable binding types
 	nullType         = 0x05
@@ -553,13 +555,18 @@ func FormatTimeTicks(timeticks uint64) string {
 	return fmt.Sprintf("%d days, %02d:%02d:%02d.%02d", days, hours, minutes, seconds, centiseconds)
 }
 
-// SNMPWalk performs an SNMP walk on the specified IP address
-func SNMPWalk(ipAddress string) {
-	port := 161         // SNMP default port
+// SNMPWalk performs an SNMP walk on the specified IP address. port defaults to 161 if empty or invalid.
+func SNMPWalk(ipAddress, port string) {
+	portNum := 161
+	if port != "" {
+		if p, err := strconv.Atoi(port); err == nil {
+			portNum = p
+		}
+	}
 	community := "public"  // SNMP community string
 	timeout := 5 * time.Second
-	
-	conn, err := net.DialTimeout("udp", fmt.Sprintf("%s:%d", ipAddress, port), timeout)
+
+	conn, err := net.DialTimeout("udp", fmt.Sprintf("%s:%d", ipAddress, portNum), timeout)
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
