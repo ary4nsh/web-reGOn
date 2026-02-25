@@ -250,6 +250,7 @@ func analyzeAndPrintCookie(headerName, cookieStr string) {
 	fmt.Print(headerName, ": ")
 	parts := strings.Split(cookieStr, ";")
 	var hasSecure, hasHttpOnly, hasSameSite, hasExpires, hasMaxAge bool
+	var sameSiteIsNone bool
 
 	for i, p := range parts {
 		p = strings.TrimSpace(p)
@@ -265,7 +266,12 @@ func analyzeAndPrintCookie(headerName, cookieStr string) {
 			parts[i] = green + p + reset
 		} else if strings.HasPrefix(pl, "samesite=") {
 			hasSameSite = true
-			parts[i] = green + p + reset
+			if strings.TrimSpace(strings.TrimPrefix(pl, "samesite=")) == "none" {
+				sameSiteIsNone = true
+				parts[i] = red + p + reset
+			} else {
+				parts[i] = green + p + reset
+			}
 		} else if strings.HasPrefix(pl, "expires=") {
 			hasExpires = true
 			parts[i] = green + p + reset
@@ -296,6 +302,11 @@ func analyzeAndPrintCookie(headerName, cookieStr string) {
 	// Missing both HttpOnly and SameSite: XSS can steal the cookie
 	if !hasHttpOnly && !hasSameSite {
 		fmt.Println("- " + red + "The cookie can be stolen if the site has an XSS vulnerability (no HttpOnly and SameSite attribute is set)" + reset)
+	}
+
+	// SameSite=None allows cross-site requests; CSRF risk
+	if sameSiteIsNone {
+		fmt.Println("- " + yellow + "The website might be vulnerable to CSRF vulnerability" + reset)
 	}
 
 	// Insecure: none of Secure, HttpOnly, Expires (we treat Max-Age as expiry)
