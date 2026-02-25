@@ -177,8 +177,8 @@ func anyFlagSet(flags Flags) bool {
 	return flags.dnsFlag || flags.httpFlag || flags.httpOptions || flags.hstsHeader ||
 		flags.shodanFlag || flags.combinedEnrichment || flags.companyEnrichment ||
 		flags.domainSearch || flags.emailEnrichment ||
-		flags.emailFinder || flags.emailVerifier || flags.snmpWalk ||
-		flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
+		flags.emailFinder || flags.emailVerifier ||
+		flags.snmpWalk || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 		flags.memcachedScan || flags.dnsDumpster || flags.zoneTransfer ||
 		flags.whois || flags.cspHeader || flags.riaHeader || flags.pathConfusion ||
 		flags.waf || flags.hiddenDirectories || flags.cookieAndAccount ||
@@ -193,9 +193,9 @@ func main() {
 	var flags Flags
 
 	var rootCmd = &cobra.Command{
-		Use:   "linux-reGOn [url]",
+		Use:   "web-reGOn [url]",
 		Short: "A simple recon tool",
-		Long:  "linux-reGOn is a recon tool",
+		Long:  "web-reGOn is a reconnaissance tool",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Check if no flags are set
 			if !anyFlagSet(flags) {
@@ -373,7 +373,7 @@ func main() {
 			}
 
 			requiresTarget := flags.dnsFlag || flags.httpFlag || flags.httpOptions || flags.hstsHeader ||
-				flags.snmpWalk || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
+				flags.ftpScan || flags.snmpEnumUsers || flags.snmpEnumShares || flags.ftpScan ||
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
@@ -518,24 +518,19 @@ func main() {
 					identitymanagement.CookieAndAccount(URL, flags.wordlist, flags.threads)
 				},
 				flags.snmpWalk: func() {
-					// Execute SNMP walk sequentially
-					snmp.SNMPWalk(ipAddress)
+					snmp.SNMPWalk(ipAddress, flags.port)
 				},
 				flags.snmpEnumUsers: func() {
-					// Execute SNMP user enumeration sequentially
-					snmp.SNMPEnumUsers(ipAddress)
+					snmp.SNMPEnumUsers(ipAddress, flags.port)
 				},
 				flags.snmpEnumShares: func() {
-					// Execute SNMP share enumeration sequentially
-					snmp.SNMPEnumShares(ipAddress)
+					snmp.SNMPEnumShares(ipAddress, flags.port)
 				},
 				flags.ftpScan: func() {
-					// Execute FTP scan sequentially
-					ftp.FTPScan(ipAddress)
+					ftp.FTPScan(ipAddress, flags.port)
 				},
 				flags.memcachedScan: func() {
-					// Execute Memcached scan sequentially
-					memcached.MemcachedScan(ipAddress)
+					memcached.MemcachedScan(ipAddress, flags.port)
 				},
 
 				// Identity Manegement
@@ -683,7 +678,7 @@ func main() {
 	rootCmd.Flags().StringVarP(&flags.passlist, "passlist", "", "", "Password list file path")
 	rootCmd.Flags().StringVarP(&flags.apiKey, "api-key", "", "", "API key")
 	rootCmd.Flags().StringVarP(&flags.email, "email", "", "", "Email address to verify")
-	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number to use with HTTP OPTIONS")
+	rootCmd.Flags().StringVarP(&flags.port, "port", "p", "", "Port number (e.g. for HTTP OPTIONS or FTP scan)")
 	rootCmd.Flags().StringVarP(&flags.wordlist, "wordlist", "w", "", "Wordlist file path")
 	rootCmd.Flags().StringVarP(&flags.mac, "mac", "", "", "MAC address")
 	rootCmd.Flags().IntVarP(&flags.threads, "threads", "t", 50, "Number of concurrent threads (default: 50)")
