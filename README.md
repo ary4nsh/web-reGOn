@@ -82,6 +82,7 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
 [Weak Cryptography]
       --anonymous-ciphers    Test for anonymous (anon) cipher suites vulnerability
       --beast                Test for BEAST (CVE-2011-3389) SSLv3/TLS 1.0 CBC vulnerability
+      --crime                Test for CRIME (CVE-2012-4929) TLS compression vulnerability
       --drown                Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities
       --freak                Test for FREAK (CVE-2015-0204) export RSA cipher suites vulnerability
       --lucky13              Test for Lucky 13 (CVE-2013-0169) TLS CBC vulnerability
@@ -93,11 +94,11 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --domain               Domain to search for email
       --email                Email address to verify
       --first-name           First name of the person
-  -h, --help                 help for linux-reGOn
+  -h, --help                 help for web-reGOn
       --last-name            Last name of the person
       --mac                  MAC address
       --passlist             Password list file path
-  -p, --port                 Port number to use with HTTP OPTIONS
+  -p, --port                 Port number (e.g. for HTTP OPTIONS or FTP scan)
   -t, --threads              Number of concurrent threads (default: 50)
       --userlist             Username list file path
   -w, --wordlist             Wordlist file path
