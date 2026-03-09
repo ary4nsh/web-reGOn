@@ -100,6 +100,7 @@ type Flags struct {
 	freak            bool
 	nomore           bool
 	nullCiphers      bool
+	crime 			 bool
 
 	// Others
 	apiKey    string
@@ -171,6 +172,7 @@ var flagGroups = map[string]string{
 	"freak":             "Weak Cryptography",
 	"nomore":            "Weak Cryptography",
 	"null-ciphers":      "Weak Cryptography",
+	"crime":			 "Weak Cryptography",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -186,7 +188,8 @@ func anyFlagSet(flags Flags) bool {
 		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
 		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
 		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl ||
-		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers
+		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || 
+		flags.nullCiphers || flags.crime
 }
 
 func main() {
@@ -377,7 +380,7 @@ func main() {
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
-				flags.whois || flags.cspHeader || flags.riaHeader
+				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime
 
 			var URL, ipAddress string
 			if requiresTarget {
@@ -588,6 +591,9 @@ func main() {
 				flags.nullCiphers: func() {
 					weakcryptography.NullCiphers(URL, flags.port)
 				},
+				flags.crime: func() {
+					weakcryptography.CRIME(URL, flags.port)
+				},
 			}
 
 			for flag, function := range functions {
@@ -668,6 +674,7 @@ func main() {
 	rootCmd.Flags().BoolVar(&flags.freak, "freak", false, "Test for FREAK (CVE-2015-0204) export RSA cipher suites vulnerability")
 	rootCmd.Flags().BoolVar(&flags.nomore, "nomore", false, "Test for NOMORE (CVE-2013-2566) RC4 cipher suites vulnerability")
 	rootCmd.Flags().BoolVar(&flags.nullCiphers, "null-ciphers", false, "Test for NULL cipher suites vulnerability")
+	rootCmd.Flags().BoolVar(&flags.crime, "crime", false, "Test for CRIME (CVE-2012-4929) TLS compression vulnerability")
 
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
