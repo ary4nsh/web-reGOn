@@ -8,7 +8,7 @@ You can also use the optional `--port` flag to specify the port to test (the def
 ./linux-reGOn --anonymous-ciphers [domain name] --port [port number]
 ```
 
-## BEAST ((Browser Exploit Against SSL/TLS))
+## BEAST (Browser Exploit Against SSL/TLS)
 Use the `--beast` flag to test for the BEAST (CVE-2011-3389) vulnerability.
 
 in SSLv3/TLS 1.0 CBC mode encryption. In SSLv3/TLS 1.0, cipher suites that use CBC mode encryption cause each block of plaintext to be XORed with the previous ciphertext block before being encrypted. This chaining means that if an attacker can manipulate a cipher block in a specific way, they can affect subsequent blocks.
