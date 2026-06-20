@@ -30,8 +30,9 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/memcached"
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/snmp"
 
-	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
 	brokenauthorization "github.com/ary4nsh/web-reGOn/libs/broken-authentication"
+	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
+	inputvalidation "github.com/ary4nsh/web-reGOn/libs/input-validation"
 	sessionmanagement "github.com/ary4nsh/web-reGOn/libs/session-management"
 	weakcryptography "github.com/ary4nsh/web-reGOn/libs/weak-cryptography"
 
@@ -89,8 +90,11 @@ type Flags struct {
 	cacheWeakness    bool
 
 	// Session Management
-	sessionCookie  bool
+	sessionCookie bool
 	cacheControl  bool
+
+	// Input Validation
+	reflectedXSS bool
 
 	// Weak Cryptography
 	drown            bool
@@ -100,20 +104,21 @@ type Flags struct {
 	freak            bool
 	nomore           bool
 	nullCiphers      bool
-	crime 			 bool
+	crime            bool
 
 	// Others
-	apiKey    string
-	domain    string
-	firstName string
-	lastName  string
-	email     string
-	port      string
-	wordlist  string
-	userlist  string
-	passlist  string
-	mac       string
-	threads   int
+	apiKey      string
+	payloadFile string
+	domain      string
+	firstName   string
+	lastName    string
+	email       string
+	port        string
+	wordlist    string
+	userlist    string
+	passlist    string
+	mac         string
+	threads     int
 }
 
 var flagGroups = map[string]string{
@@ -160,10 +165,13 @@ var flagGroups = map[string]string{
 
 	"tls":               "Broken Authentication",
 	"remember-password": "Broken Authentication",
-	"cache-weakness":   "Broken Authentication",
+	"cache-weakness":    "Broken Authentication",
 
-	"session-cookie":   "Session Management",
-	"cache-control":    "Session Management",
+	"session-cookie": "Session Management",
+	"cache-control":  "Session Management",
+
+	"reflected-xss": "Input Validation",
+	"payload-file":  "Input Validation",
 
 	"drown":             "Weak Cryptography",
 	"lucky13":           "Weak Cryptography",
@@ -172,7 +180,7 @@ var flagGroups = map[string]string{
 	"freak":             "Weak Cryptography",
 	"nomore":            "Weak Cryptography",
 	"null-ciphers":      "Weak Cryptography",
-	"crime":			 "Weak Cryptography",
+	"crime":             "Weak Cryptography",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -188,8 +196,8 @@ func anyFlagSet(flags Flags) bool {
 		flags.dnsLookup || flags.dnsPropagation || flags.ipHistory || flags.macAddressLookup ||
 		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
 		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl ||
-		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || 
-		flags.nullCiphers || flags.crime
+		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore ||
+		flags.nullCiphers || flags.crime || flags.reflectedXSS
 }
 
 func main() {
@@ -207,6 +215,13 @@ func main() {
 			}
 
 			// Check if dirTraversal is set and wordlist is provided
+			if flags.reflectedXSS {
+				if flags.payloadFile == "" {
+					fmt.Println("Please provide payload file path when using --reflected-xss (--payload-file string)")
+					return
+				}
+			}
+
 			if flags.pathConfusion {
 				if flags.wordlist == "" {
 					fmt.Println("Please provide wordlist path when using --path-confusion (--wordlist string)")
@@ -380,7 +395,7 @@ func main() {
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
-				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime
+				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime || flags.reflectedXSS
 
 			var URL, ipAddress string
 			if requiresTarget {
@@ -596,6 +611,11 @@ func main() {
 				},
 			}
 
+			// Headless browser must run on the main goroutine (not concurrent).
+			if flags.reflectedXSS {
+				inputvalidation.ReflectedXSS(URL, flags.payloadFile)
+			}
+
 			for flag, function := range functions {
 				if flag {
 					wg.Add(1)
@@ -666,9 +686,13 @@ func main() {
 	rootCmd.Flags().BoolVarP(&flags.sessionCookie, "session-cookie", "", false, "Analyse session cookie security")
 	rootCmd.Flags().BoolVarP(&flags.cacheControl, "cache-control", "", false, "Check Cache-Control, Expires, and Strict-Transport-Security headers")
 
+	// Input Validation
+	rootCmd.Flags().BoolVar(&flags.reflectedXSS, "reflected-xss", false, "Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser")
+	rootCmd.Flags().StringVar(&flags.payloadFile, "payload-file", "", "Path to file containing the XSS payload (required with --reflected-xss)")
+
 	// Weak Cryptography
 	rootCmd.Flags().BoolVar(&flags.drown, "drown", false, "Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities")
-	rootCmd.Flags().BoolVar(&flags.lucky13, "lucky13", false, "Test for Lucky 13 (CVE-2013-0169) TLS CBC vulnerability")
+	rootCmd.Flags().BoolVar(&flags.lucky13, "lucky13", false, "Test for Lucky13 (CVE-2013-0169) TLS CBC vulnerability")
 	rootCmd.Flags().BoolVar(&flags.beast, "beast", false, "Test for BEAST (CVE-2011-3389) SSLv3/TLS 1.0 CBC vulnerability")
 	rootCmd.Flags().BoolVar(&flags.anonymousCiphers, "anonymous-ciphers", false, "Test for anonymous (anon) cipher suites vulnerability")
 	rootCmd.Flags().BoolVar(&flags.freak, "freak", false, "Test for FREAK (CVE-2015-0204) export RSA cipher suites vulnerability")
@@ -709,7 +733,7 @@ func main() {
 			groups[group] = append(groups[group], line)
 		})
 
-		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Weak Cryptography", "Other"}
+		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Input Validation", "Weak Cryptography", "Other"}
 		for _, group := range order {
 			if lines, ok := groups[group]; ok {
 				fmt.Printf("[%s]\n", group)
