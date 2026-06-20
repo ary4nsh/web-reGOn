@@ -79,13 +79,17 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --cache-control        Check Cache-Control, Expires, and Strict-Transport-Security headers
       --session-cookie       Analyse session cookie security
 
+[Input Validation]
+      --payload-file         Path to file containing the XSS payload (required with --reflected-xss)
+      --reflected-xss        Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser
+
 [Weak Cryptography]
       --anonymous-ciphers    Test for anonymous (anon) cipher suites vulnerability
       --beast                Test for BEAST (CVE-2011-3389) SSLv3/TLS 1.0 CBC vulnerability
       --crime                Test for CRIME (CVE-2012-4929) TLS compression vulnerability
       --drown                Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities
       --freak                Test for FREAK (CVE-2015-0204) export RSA cipher suites vulnerability
-      --lucky13              Test for Lucky 13 (CVE-2013-0169) TLS CBC vulnerability
+      --lucky13              Test for Lucky13 (CVE-2013-0169) TLS CBC vulnerability
       --nomore               Test for NOMORE (CVE-2013-2566) RC4 cipher suites vulnerability
       --null-ciphers         Test for NULL cipher suites vulnerability
 
