@@ -3,13 +3,8 @@ package weakcryptography
 import (
 	"crypto/rand"
 	"fmt"
-	"net"
 	"strings"
-	"time"
 )
-
-const nomoreConnectTimeout = 10 * time.Second
-const nomoreHandshakeTimeout = 5 * time.Second
 
 // RC4 cipher suites (TLS)
 var rc4TLSCipherSuites = []struct {
@@ -47,37 +42,17 @@ var rc4SSLv3CipherSuites = []struct {
 	{0x0060, "EXP1024-RC4-MD5"},
 }
 
-// tryRC4Cipher sends a raw TLS Client Hello for the given version offering one cipher suite
-// and returns true if the server selects it. Used to detect RC4 support over TLS.
-func tryRC4Cipher(host, port string, cipherID uint16, version uint16) bool {
-	addr := net.JoinHostPort(host, port)
-	conn, err := net.DialTimeout("tcp", addr, nomoreConnectTimeout)
-	if err != nil {
-		return false
+// rc4TLSList returns TLS RC4 cipher IDs (testssl.sh run_rc4 coverage).
+func rc4TLSList() []uint16 {
+	ids := make([]uint16, 0, len(rc4TLSCipherSuites))
+	for _, c := range rc4TLSCipherSuites {
+		ids = append(ids, c.ID)
 	}
-	defer conn.Close()
-	conn.SetDeadline(time.Now().Add(nomoreHandshakeTimeout))
-
-	clientHello, err := buildTLSClientHello(cipherID, host, version)
-	if err != nil {
-		return false
-	}
-	if _, err := conn.Write(clientHello); err != nil {
-		return false
-	}
-	buf := make([]byte, 4096)
-	n, err := conn.Read(buf)
-	if err != nil || n < 5 {
-		return false
-	}
-	chosen, ok := parseTLSServerHello(buf[:n])
-	return ok && chosen == cipherID
+	return ids
 }
 
 // NoMore runs the RC4 cipher check and prints results.
-// urlStr is the target URL (e.g. from args[0]); port is optional (e.g. from --port).
-// URL/port: no port -> https/443; port 80 -> http; other port -> http://host:port.
-// Tests SSLv2, SSLv3, TLS 1.0, 1.1, 1.2, 1.3 for cipher suites containing RC4
+// Detection follows testssl.sh run_rc4: probe RC4 suites on SSLv2, SSLv3, TLS 1.0–1.2.
 func NoMore(urlStr, port string) {
 	displayURL, host, portForConn, err := normalizeTarget(urlStr, port)
 	if err != nil {
@@ -86,9 +61,18 @@ func NoMore(urlStr, port string) {
 	}
 	fmt.Printf("Target: %s (host=%s port=%s)\n", displayURL, host, portForConn)
 
-	var supportedRC4 []string
+	if isTLS13OnlyServer(host, portForConn) {
+		fmt.Println("RC4 (No More) - Cipher suites containing RC4 encryption")
+		fmt.Println("  OK - No RC4 cipher suites supported")
+		fmt.Println("  Supported RC4 cipher(s):")
+		fmt.Println("    None")
+		return
+	}
 
-	// SSLv2: doSetup returns server-offered ciphers; check if any is RC4.
+	var supportedRC4 []string
+	rc4List := rc4TLSList()
+	rc4Set := cipherSet(rc4List)
+
 	var challenge [16]byte
 	if _, err := rand.Read(challenge[:]); err != nil {
 		challenge = [16]byte{}
@@ -103,22 +87,25 @@ func NoMore(urlStr, port string) {
 		}
 	}
 
-	// SSLv3: probe each RC4 cipher.
+	ssl3IDs := make([]uint16, 0, len(rc4SSLv3CipherSuites))
 	for _, c := range rc4SSLv3CipherSuites {
-		if trySSL3CipherSuite(host, portForConn, c.ID) {
-			supportedRC4 = append(supportedRC4, "[SSLv3] "+c.Name)
-			break
+		ssl3IDs = append(ssl3IDs, c.ID)
+	}
+	if chosen, ok := probeSSL3Batch(host, portForConn, ssl3IDs); ok && rc4Set[chosen] {
+		supportedRC4 = append(supportedRC4, "[SSLv3] "+cipherName(chosen))
+	} else if chosen, ok := probeSSL3Batch(host, portForConn, ssl3IDs); ok {
+		for _, c := range rc4SSLv3CipherSuites {
+			if c.ID == chosen {
+				supportedRC4 = append(supportedRC4, "[SSLv3] "+c.Name)
+				break
+			}
 		}
 	}
 
-	// TLS 1.0, 1.1, 1.2, 1.3: probe each RC4 cipher per version.
-	tlsVersions := []uint16{tlsVersion10, tlsVersion11, tlsVersion12, tlsVersion13}
-	for _, c := range rc4TLSCipherSuites {
-		for _, ver := range tlsVersions {
-			if tryRC4Cipher(host, portForConn, c.ID, ver) {
-				supportedRC4 = append(supportedRC4, "[TLS] "+c.Name)
-				break
-			}
+	for _, ver := range []uint16{tlsVersion10, tlsVersion11, tlsVersion12} {
+		if chosen, ok := probeAnyCipherFromList(host, portForConn, ver, rc4List, host); ok && rc4Set[chosen] {
+			supportedRC4 = append(supportedRC4, "[TLS] "+cipherName(chosen))
+			break
 		}
 	}
 
