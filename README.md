@@ -87,6 +87,7 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --anonymous-ciphers    Test for anonymous (anon) cipher suites vulnerability
       --beast                Test for BEAST (CVE-2011-3389) SSLv3/TLS 1.0 CBC vulnerability
       --breach               Test for BREACH (CVE-2013-3587) HTTP compression vulnerability
+      --ccs-injection        Test for CCS injection (CVE-2014-0224) vulnerability
       --crime                Test for CRIME (CVE-2012-4929) TLS compression vulnerability
       --drown                Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities
       --freak                Test for FREAK (CVE-2015-0204) export RSA cipher suites vulnerability
@@ -98,6 +99,7 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --null-ciphers         Test for NULL cipher suites vulnerability
       --poodle               Test for POODLE SSL (CVE-2014-3566) and TLS (CVE-2014-8730) vulnerabilities
       --sweet32              Test for SWEET32 (CVE-2016-2183) 64-bit block cipher vulnerability
+      --test-all             Run all Weak Cryptography vulnerability checks in order
       --ticketbleed          Test for Ticketbleed (CVE-2016-9244) vulnerability
       --tls-fallback-scsv    Check TLS_FALLBACK_SCSV (RFC 7507) downgrade attack prevention
       --winshock             Test for Winshock (CVE-2014-6321) vulnerability
