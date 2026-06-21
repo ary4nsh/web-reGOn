@@ -1,3 +1,17 @@
+## Test All
+Use the `--test-all` flag to run all Weak Cryptography vulnerability checks in order.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --test-all [domain name] --port [port number]
+```
+
+## Multiple Flags
+You can combine Weak Cryptography flags on one command line. Tests run in the order the flags appear on the command line:
+```
+./linux-reGOn --anonymous-ciphers --breach --logjam [domain name] --port [port number]
+```
+
 ## Anonymous Ciphers
 Use the `--anonymous-ciphers` flag to test for support of anonymous (anon) cipher suites.
 
@@ -8,7 +22,7 @@ You can also use the optional `--port` flag to specify the port to test (the def
 ./linux-reGOn --anonymous-ciphers [domain name] --port [port number]
 ```
 
-## BEAST (Browser Exploit Against SSL/TLS)
+## BEAST ((Browser Exploit Against SSL/TLS))
 Use the `--beast` flag to test for the BEAST (CVE-2011-3389) vulnerability.
 
 in SSLv3/TLS 1.0 CBC mode encryption. In SSLv3/TLS 1.0, cipher suites that use CBC mode encryption cause each block of plaintext to be XORed with the previous ciphertext block before being encrypted. This chaining means that if an attacker can manipulate a cipher block in a specific way, they can affect subsequent blocks.
@@ -96,6 +110,16 @@ CRIME exploits TLS-level compression (such as DEFLATE) to recover secrets from e
 You can also use the optional `--port` flag to specify the port to test (the default port is 443):
 ```
 ./linux-reGOn --crime [domain name] --port [port number]
+```
+
+## CCS (ChangeCipherSpec Injection)
+Use the `--ccs-injection` flag to test for CCS injection (CVE-2014-0224) vulnerability.
+
+CCS injection is an OpenSSL/TLS flaw where a ChangeCipherSpec message sent early in the handshake can skip key material verification. A vulnerable server may accept the message and allow a man-in-the-middle to decrypt or modify traffic.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --ccs-injection [domain name] --port [port number]
 ```
 
 ## Heartbleed
