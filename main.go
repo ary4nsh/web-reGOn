@@ -34,7 +34,6 @@ import (
 	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
 	inputvalidation "github.com/ary4nsh/web-reGOn/libs/input-validation"
 	sessionmanagement "github.com/ary4nsh/web-reGOn/libs/session-management"
-	weakcryptography "github.com/ary4nsh/web-reGOn/libs/weak-cryptography"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -114,6 +113,8 @@ type Flags struct {
 	tlsFallbackSCSV  bool
 	winshock         bool
 	ticketbleed      bool
+	ccsInjection     bool
+	testAll          bool
 
 	// Others
 	apiKey      string
@@ -199,6 +200,8 @@ var flagGroups = map[string]string{
 	"tls-fallback-scsv":      "Weak Cryptography",
 	"winshock":               "Weak Cryptography",
 	"ticketbleed":            "Weak Cryptography",
+	"ccs-injection":          "Weak Cryptography",
+	"test-all":               "Weak Cryptography",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -217,7 +220,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore ||
 		flags.nullCiphers || flags.crime || flags.insecureRenegotiation || flags.logjam || flags.breach ||
 		flags.sweet32 || flags.heartbleed || flags.poodle || flags.tlsFallbackSCSV || flags.winshock ||
-		flags.ticketbleed || flags.reflectedXSS
+		flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS
 }
 
 func main() {
@@ -417,7 +420,7 @@ func main() {
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime || flags.insecureRenegotiation ||
 				flags.logjam || flags.breach || flags.sweet32 || flags.heartbleed || flags.poodle ||
-				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.reflectedXSS
+				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS
 
 			var URL, ipAddress string
 			if requiresTarget {
@@ -606,63 +609,18 @@ func main() {
 					sessionmanagement.CacheControl(URL, flags.port)
 				},
 
-				// Weak Cryptography
-				flags.drown: func() {
-					weakcryptography.DROWN(URL, flags.port)
-				},
-				flags.lucky13: func() {
-					weakcryptography.Lucky13(URL, flags.port)
-				},
-				flags.beast: func() {
-					weakcryptography.BEAST(URL, flags.port)
-				},
-				flags.anonymousCiphers: func() {
-					weakcryptography.AnonymousCiphers(URL, flags.port)
-				},
-				flags.freak: func() {
-					weakcryptography.FREAK(URL, flags.port)
-				},
-				flags.nomore: func() {
-					weakcryptography.NoMore(URL, flags.port)
-				},
-				flags.nullCiphers: func() {
-					weakcryptography.NullCiphers(URL, flags.port)
-				},
-				flags.crime: func() {
-					weakcryptography.CRIME(URL, flags.port)
-				},
-				flags.insecureRenegotiation: func() {
-					weakcryptography.InsecureRenegotiation(URL, flags.port)
-				},
-				flags.logjam: func() {
-					weakcryptography.LOGJAM(URL, flags.port)
-				},
-				flags.breach: func() {
-					weakcryptography.BREACH(URL, flags.port)
-				},
-				flags.sweet32: func() {
-					weakcryptography.SWEET32(URL, flags.port)
-				},
-				flags.heartbleed: func() {
-					weakcryptography.Heartbleed(URL, flags.port)
-				},
-				flags.poodle: func() {
-					weakcryptography.POODLE(URL, flags.port)
-				},
-				flags.tlsFallbackSCSV: func() {
-					weakcryptography.TLSFallbackSCSV(URL, flags.port)
-				},
-				flags.winshock: func() {
-					weakcryptography.Winshock(URL, flags.port)
-				},
-				flags.ticketbleed: func() {
-					weakcryptography.Ticketbleed(URL, flags.port)
-				},
+				// Weak Cryptography tests run sequentially via runWeakCryptoTests (see weakcrypto_runner.go).
+
+				// Input Validation — reflected XSS runs on main goroutine below.
 			}
 
 			// Headless browser must run on the main goroutine (not concurrent).
 			if flags.reflectedXSS {
 				inputvalidation.ReflectedXSS(URL, flags.payloadFile)
+			}
+
+			if anyWeakCryptoFlag(flags) {
+				runWeakCryptoTests(flags, URL, flags.port)
 			}
 
 			for flag, function := range functions {
@@ -757,6 +715,8 @@ func main() {
 	rootCmd.Flags().BoolVar(&flags.tlsFallbackSCSV, "tls-fallback-scsv", false, "Check TLS_FALLBACK_SCSV (RFC 7507) downgrade attack prevention")
 	rootCmd.Flags().BoolVar(&flags.winshock, "winshock", false, "Test for Winshock (CVE-2014-6321) vulnerability")
 	rootCmd.Flags().BoolVar(&flags.ticketbleed, "ticketbleed", false, "Test for Ticketbleed (CVE-2016-9244) vulnerability")
+	rootCmd.Flags().BoolVar(&flags.ccsInjection, "ccs-injection", false, "Test for CCS injection (CVE-2014-0224) vulnerability")
+	rootCmd.Flags().BoolVar(&flags.testAll, "test-all", false, "Run all Weak Cryptography vulnerability checks in order")
 
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
