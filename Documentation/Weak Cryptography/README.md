@@ -8,7 +8,7 @@ You can also use the optional `--port` flag to specify the port to test (the def
 ./linux-reGOn --anonymous-ciphers [domain name] --port [port number]
 ```
 
-## BEAST (Browser Exploit Against SSL/TLS)
+## BEAST ((Browser Exploit Against SSL/TLS))
 Use the `--beast` flag to test for the BEAST (CVE-2011-3389) vulnerability.
 
 in SSLv3/TLS 1.0 CBC mode encryption. In SSLv3/TLS 1.0, cipher suites that use CBC mode encryption cause each block of plaintext to be XORed with the previous ciphertext block before being encrypted. This chaining means that if an attacker can manipulate a cipher block in a specific way, they can affect subsequent blocks.
@@ -66,4 +66,104 @@ NULL cipher suites provide authentication only and no encryption.
 You can also use the optional `--port` flag to specify the port to test (the default port is 443):
 ```
 ./linux-reGOn --null-ciphers [domain name] --port [port number]
+```
+
+## Insecure Renegotiation
+Use the `--insecure-renegotiation` flag to test for insecure TLS renegotiation (RFC 5746 / CVE-2011-1473).
+
+Checks whether the server supports secure renegotiation (RFC 5746) and whether it accepts client-initiated renegotiation, which can be abused for denial-of-service attacks.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --insecure-renegotiation [domain name] --port [port number]
+```
+
+## BREACH (Browser Reconnaissance and Exfiltration via Adaptive Compression of Hypertext)
+Use the `--breach` flag to test for BREACH (CVE-2013-3587) HTTP compression vulnerability.
+
+BREACH is an HTTP-level compression attack that works against any cipher suite and is agnostic to the version of TLS/SSL. If the server compresses HTTP responses (gzip, deflate, compress, or br) and the page reflects attacker-influenced input, secrets in the page may be recoverable through compression side channels.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --breach [domain name] --port [port number]
+```
+
+## CRIME (Compression Ratio Info-leak Made Easy)
+Use the `--crime` flag to test for CRIME (CVE-2012-4929) TLS compression vulnerability.
+
+CRIME exploits TLS-level compression (such as DEFLATE) to recover secrets from encrypted traffic when the attacker can control part of the request and observe ciphertext length changes. TLS 1.3 does not support compression.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --crime [domain name] --port [port number]
+```
+
+## Heartbleed
+Use the `--heartbleed` flag to test for Heartbleed (CVE-2014-0160) vulnerability.
+
+Heartbleed is a flaw in OpenSSL's implementation of the TLS heartbeat extension. A malformed heartbeat request can cause the server to leak memory contents, potentially exposing private keys, session tokens, and other sensitive data.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --heartbleed [domain name] --port [port number]
+```
+
+## LOGJAM
+Use the `--logjam` flag to test for LOGJAM (CVE-2015-4000) DH EXPORT vulnerability.
+
+LOGJAM targets weak Diffie-Hellman key exchange, especially export-grade DH cipher suites with small prime sizes. An attacker who can downgrade or force use of these ciphers may be able to break the key exchange and decrypt traffic.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --logjam [domain name] --port [port number]
+```
+
+## POODLE (Padding Oracle On Downgraded Legacy Encryption)
+Use the `--poodle` flag to test for POODLE SSL (CVE-2014-3566) and TLS (CVE-2014-8730) vulnerabilities.
+
+POODLE SSL exploits CBC padding in SSLv3 to decrypt HTTPS cookies when the server still supports SSLv3. POODLE TLS is an experimental check for similar padding issues in TLS; full coverage may require dedicated timing analysis tools.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --poodle [domain name] --port [port number]
+```
+
+## SWEET32
+Use the `--sweet32` flag to test for SWEET32 (CVE-2016-2183) 64-bit block cipher vulnerability.
+
+SWEET32 is a birthday attack against 64-bit block ciphers such as 3DES, DES, RC2, and IDEA. Long-lived HTTPS sessions using these ciphers can allow an attacker to recover cookies or other secrets after collecting enough ciphertext blocks.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --sweet32 [domain name] --port [port number]
+```
+
+## Ticketbleed
+Use the `--ticketbleed` flag to test for Ticketbleed (CVE-2016-9244) vulnerability.
+
+Ticketbleed affects some F5 BIG-IP load balancers when session ticket handling leaks memory into the TLS session ID field. The check probes session ticket support and compares repeated handshake responses for inconsistent leaked data.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --ticketbleed [domain name] --port [port number]
+```
+
+## TLS_FALLBACK_SCSV
+Use the `--tls-fallback-scsv` flag to check TLS_FALLBACK_SCSV (RFC 7507) downgrade attack prevention.
+
+TLS_FALLBACK_SCSV is a cipher suite signal that tells the server the client is intentionally connecting with an older protocol version as a fallback. Compliant servers should reject the connection with an inappropriate fallback alert instead of completing a downgrade that could enable attacks such as POODLE.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --tls-fallback-scsv [domain name] --port [port number]
+```
+
+## Winshock
+Use the `--winshock` flag to test for Winshock (CVE-2014-6321) vulnerability.
+
+Winshock is a critical flaw in Microsoft's Schannel (MS14-066) that can allow remote code execution on unpatched Windows Server 2012 / IIS 8.x systems. The check uses TLS cipher and extension heuristics plus HTTP Server banner analysis to identify likely vulnerable Microsoft stacks.
+
+You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+```
+./linux-reGOn --winshock [domain name] --port [port number]
 ```
