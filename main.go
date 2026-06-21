@@ -105,6 +105,15 @@ type Flags struct {
 	nomore           bool
 	nullCiphers      bool
 	crime            bool
+	insecureRenegotiation bool
+	logjam           bool
+	breach           bool
+	sweet32          bool
+	heartbleed       bool
+	poodle           bool
+	tlsFallbackSCSV  bool
+	winshock         bool
+	ticketbleed      bool
 
 	// Others
 	apiKey      string
@@ -173,14 +182,23 @@ var flagGroups = map[string]string{
 	"reflected-xss": "Input Validation",
 	"payload-file":  "Input Validation",
 
-	"drown":             "Weak Cryptography",
-	"lucky13":           "Weak Cryptography",
-	"beast":             "Weak Cryptography",
-	"anonymous-ciphers": "Weak Cryptography",
-	"freak":             "Weak Cryptography",
-	"nomore":            "Weak Cryptography",
-	"null-ciphers":      "Weak Cryptography",
-	"crime":             "Weak Cryptography",
+	"drown":                  "Weak Cryptography",
+	"lucky13":                "Weak Cryptography",
+	"beast":                  "Weak Cryptography",
+	"anonymous-ciphers":      "Weak Cryptography",
+	"freak":                  "Weak Cryptography",
+	"nomore":                 "Weak Cryptography",
+	"null-ciphers":           "Weak Cryptography",
+	"crime":                  "Weak Cryptography",
+	"insecure-renegotiation": "Weak Cryptography",
+	"logjam":                 "Weak Cryptography",
+	"breach":                 "Weak Cryptography",
+	"sweet32":                "Weak Cryptography",
+	"heartbleed":             "Weak Cryptography",
+	"poodle":                 "Weak Cryptography",
+	"tls-fallback-scsv":      "Weak Cryptography",
+	"winshock":               "Weak Cryptography",
+	"ticketbleed":            "Weak Cryptography",
 }
 
 func anyFlagSet(flags Flags) bool {
@@ -197,7 +215,9 @@ func anyFlagSet(flags Flags) bool {
 		flags.multiplePing || flags.reverseDns || flags.subdomainDiscovery || flags.traceroute ||
 		flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl ||
 		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore ||
-		flags.nullCiphers || flags.crime || flags.reflectedXSS
+		flags.nullCiphers || flags.crime || flags.insecureRenegotiation || flags.logjam || flags.breach ||
+		flags.sweet32 || flags.heartbleed || flags.poodle || flags.tlsFallbackSCSV || flags.winshock ||
+		flags.ticketbleed || flags.reflectedXSS
 }
 
 func main() {
@@ -395,7 +415,9 @@ func main() {
 				flags.memcachedScan || flags.pathConfusion || flags.hiddenDirectories ||
 				flags.cookieAndAccount || flags.statusCodeEnum || flags.errorMessageEnum ||
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
-				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime || flags.reflectedXSS
+				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime || flags.insecureRenegotiation ||
+				flags.logjam || flags.breach || flags.sweet32 || flags.heartbleed || flags.poodle ||
+				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.reflectedXSS
 
 			var URL, ipAddress string
 			if requiresTarget {
@@ -609,6 +631,33 @@ func main() {
 				flags.crime: func() {
 					weakcryptography.CRIME(URL, flags.port)
 				},
+				flags.insecureRenegotiation: func() {
+					weakcryptography.InsecureRenegotiation(URL, flags.port)
+				},
+				flags.logjam: func() {
+					weakcryptography.LOGJAM(URL, flags.port)
+				},
+				flags.breach: func() {
+					weakcryptography.BREACH(URL, flags.port)
+				},
+				flags.sweet32: func() {
+					weakcryptography.SWEET32(URL, flags.port)
+				},
+				flags.heartbleed: func() {
+					weakcryptography.Heartbleed(URL, flags.port)
+				},
+				flags.poodle: func() {
+					weakcryptography.POODLE(URL, flags.port)
+				},
+				flags.tlsFallbackSCSV: func() {
+					weakcryptography.TLSFallbackSCSV(URL, flags.port)
+				},
+				flags.winshock: func() {
+					weakcryptography.Winshock(URL, flags.port)
+				},
+				flags.ticketbleed: func() {
+					weakcryptography.Ticketbleed(URL, flags.port)
+				},
 			}
 
 			// Headless browser must run on the main goroutine (not concurrent).
@@ -699,6 +748,15 @@ func main() {
 	rootCmd.Flags().BoolVar(&flags.nomore, "nomore", false, "Test for NOMORE (CVE-2013-2566) RC4 cipher suites vulnerability")
 	rootCmd.Flags().BoolVar(&flags.nullCiphers, "null-ciphers", false, "Test for NULL cipher suites vulnerability")
 	rootCmd.Flags().BoolVar(&flags.crime, "crime", false, "Test for CRIME (CVE-2012-4929) TLS compression vulnerability")
+	rootCmd.Flags().BoolVar(&flags.insecureRenegotiation, "insecure-renegotiation", false, "Test for insecure TLS renegotiation (RFC 5746 / CVE-2011-1473)")
+	rootCmd.Flags().BoolVar(&flags.logjam, "logjam", false, "Test for LOGJAM (CVE-2015-4000) DH EXPORT vulnerability")
+	rootCmd.Flags().BoolVar(&flags.breach, "breach", false, "Test for BREACH (CVE-2013-3587) HTTP compression vulnerability")
+	rootCmd.Flags().BoolVar(&flags.sweet32, "sweet32", false, "Test for SWEET32 (CVE-2016-2183) 64-bit block cipher vulnerability")
+	rootCmd.Flags().BoolVar(&flags.heartbleed, "heartbleed", false, "Test for Heartbleed (CVE-2014-0160) vulnerability")
+	rootCmd.Flags().BoolVar(&flags.poodle, "poodle", false, "Test for POODLE SSL (CVE-2014-3566) and TLS (CVE-2014-8730) vulnerabilities")
+	rootCmd.Flags().BoolVar(&flags.tlsFallbackSCSV, "tls-fallback-scsv", false, "Check TLS_FALLBACK_SCSV (RFC 7507) downgrade attack prevention")
+	rootCmd.Flags().BoolVar(&flags.winshock, "winshock", false, "Test for Winshock (CVE-2014-6321) vulnerability")
+	rootCmd.Flags().BoolVar(&flags.ticketbleed, "ticketbleed", false, "Test for Ticketbleed (CVE-2016-9244) vulnerability")
 
 	// Others
 	rootCmd.Flags().BoolVarP(&flags.cookieAndAccount, "cookie-and-account", "", false, "Cookie analysis and CMS account enumeration using wordlist")
