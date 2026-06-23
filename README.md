@@ -80,8 +80,14 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --session-cookie       Analyse session cookie security
 
 [Input Validation]
+      --cookies              Cookies to send with HTTP verb tampering requests (e.g. "cookie1=value; cookie2=value")
+      --follow-redirects     Follow HTTP redirects when testing methods
+      --header               Extra HTTP header for verb tampering (repeatable, e.g. --header "Header1: Value1")
+      --http-verb-tampering  Enumerate and test HTTP methods for verb tampering
       --payload-file         Path to file containing the XSS payload (required with --reflected-xss)
       --reflected-xss        Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser
+      --thread               Number of threads for HTTP verb tampering (default: 5)
+      --webdav-methods       Include WebDAV methods (PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK) in verb tampering tests
 
 [Weak Cryptography]
       --anonymous-ciphers    Test for anonymous (anon) cipher suites vulnerability
