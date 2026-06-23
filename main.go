@@ -93,7 +93,13 @@ type Flags struct {
 	cacheControl  bool
 
 	// Input Validation
-	reflectedXSS bool
+	reflectedXSS       bool
+	httpVerbTampering       bool
+	httpVerbCookies         string
+	httpVerbHeaders         []string
+	httpVerbThread          int
+	httpVerbFollowRedirects bool
+	httpVerbWebDAVMethods   bool
 
 	// Weak Cryptography
 	drown            bool
@@ -180,8 +186,14 @@ var flagGroups = map[string]string{
 	"session-cookie": "Session Management",
 	"cache-control":  "Session Management",
 
-	"reflected-xss": "Input Validation",
-	"payload-file":  "Input Validation",
+	"reflected-xss":         "Input Validation",
+	"payload-file":          "Input Validation",
+	"http-verb-tampering":   "Input Validation",
+	"header":                "Input Validation",
+	"cookies":               "Input Validation",
+	"thread":                "Input Validation",
+	"follow-redirects":      "Input Validation",
+	"webdav-methods":        "Input Validation",
 
 	"drown":                  "Weak Cryptography",
 	"lucky13":                "Weak Cryptography",
@@ -220,7 +232,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore ||
 		flags.nullCiphers || flags.crime || flags.insecureRenegotiation || flags.logjam || flags.breach ||
 		flags.sweet32 || flags.heartbleed || flags.poodle || flags.tlsFallbackSCSV || flags.winshock ||
-		flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS
+		flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering
 }
 
 func main() {
@@ -420,7 +432,7 @@ func main() {
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime || flags.insecureRenegotiation ||
 				flags.logjam || flags.breach || flags.sweet32 || flags.heartbleed || flags.poodle ||
-				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS
+				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering
 
 			var URL, ipAddress string
 			if requiresTarget {
@@ -619,6 +631,14 @@ func main() {
 				inputvalidation.ReflectedXSS(URL, flags.payloadFile)
 			}
 
+			if flags.httpVerbTampering {
+				port := flags.port
+				if port == "" {
+					port = "80"
+				}
+				inputvalidation.HTTPVerbTampering(URL, port, flags.httpVerbThread, flags.httpVerbCookies, flags.httpVerbHeaders, flags.wordlist, flags.httpVerbFollowRedirects, flags.httpVerbWebDAVMethods)
+			}
+
 			if anyWeakCryptoFlag(flags) {
 				runWeakCryptoTests(flags, URL, flags.port)
 			}
@@ -696,6 +716,12 @@ func main() {
 	// Input Validation
 	rootCmd.Flags().BoolVar(&flags.reflectedXSS, "reflected-xss", false, "Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser")
 	rootCmd.Flags().StringVar(&flags.payloadFile, "payload-file", "", "Path to file containing the XSS payload (required with --reflected-xss)")
+	rootCmd.Flags().BoolVar(&flags.httpVerbTampering, "http-verb-tampering", false, "Enumerate and test HTTP methods for verb tampering")
+	rootCmd.Flags().StringVar(&flags.httpVerbCookies, "cookies", "", "Cookies to send with HTTP verb tampering requests (e.g. \"cookie1=value; cookie2=value\")")
+	rootCmd.Flags().StringArrayVar(&flags.httpVerbHeaders, "header", nil, "Extra HTTP header for verb tampering (repeatable, e.g. --header \"Header1: Value1\")")
+	rootCmd.Flags().IntVar(&flags.httpVerbThread, "thread", 0, "Number of threads for HTTP verb tampering (default: 5)")
+	rootCmd.Flags().BoolVar(&flags.httpVerbFollowRedirects, "follow-redirects", false, "Follow HTTP redirects when testing methods")
+	rootCmd.Flags().BoolVar(&flags.httpVerbWebDAVMethods, "webdav-methods", false, "Include WebDAV methods (PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK) in verb tampering tests")
 
 	// Weak Cryptography
 	rootCmd.Flags().BoolVar(&flags.drown, "drown", false, "Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities")
