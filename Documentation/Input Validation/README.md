@@ -1,8 +1,28 @@
 ## Reflected XSS
-Use the `--reflected-xss` flag with `--payload-file` to test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser:
+Use the `--reflected-xss` flag with `--payload-file` to test for reflected XSS by injecting payloads into query parameters and confirming JavaScript execution (alert/confirm/prompt) via a headless browser:
 ```
-./web-reGOn [url] --reflected-xss --payload-file [path to the payload file]
+./web-reGOn http://example.com/page --reflected-xss --payload-file [path to the payload file]
 ```
+
+Each line in `--payload-file` can be either a named query payload or raw markup:
+
+```
+?user=<img src=x onerror=alert(1)>
+user=<svg onload=alert(1)>
+```
+
+Or, with the parameter already on the URL, a raw payload value:
+
+```
+./web-reGOn "http://example.com/page?user=test" --reflected-xss --payload-file payloads.txt
+```
+
+```
+<img src=x onerror=alert(1)>
+javascript:alert(1)
+```
+
+Spaces in query values are encoded as `%20` (not `+`) so client-side sinks that use `decodeURIComponent` still work.
 
 ## HTTP Verb Tampering
 Use the `--http-verb-tampering` flag to enumerate HTTP methods against a target URL. This can help identify dangerous enabled methods (such as PUT or DELETE) and test verb tampering to bypass access controls.
