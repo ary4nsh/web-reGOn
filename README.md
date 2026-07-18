@@ -84,10 +84,13 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --follow-redirects     Follow HTTP redirects when testing methods
       --header               Extra HTTP header for verb tampering (repeatable, e.g. --header "Header1: Value1")
       --http-verb-tampering  Enumerate and test HTTP methods for verb tampering
-      --payload-file         Path to file containing the XSS payload (required with --reflected-xss)
+      --payload-file         Path to file containing payloads (required with --reflected-xss or --html-injection)
       --reflected-xss        Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser
       --thread               Number of threads for HTTP verb tampering (default: 5)
       --webdav-methods       Include WebDAV methods (PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK) in verb tampering tests
+
+[Client-side]
+      --html-injection       Test for HTML injection by injecting payloads into query parameters and confirming DOM injection via headless browser
 
 [Weak Cryptography]
       --anonymous-ciphers    Test for anonymous (anon) cipher suites vulnerability
