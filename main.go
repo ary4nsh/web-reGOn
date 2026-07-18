@@ -31,6 +31,7 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/snmp"
 
 	brokenauthorization "github.com/ary4nsh/web-reGOn/libs/broken-authentication"
+	clientside "github.com/ary4nsh/web-reGOn/libs/client-side"
 	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
 	inputvalidation "github.com/ary4nsh/web-reGOn/libs/input-validation"
 	sessionmanagement "github.com/ary4nsh/web-reGOn/libs/session-management"
@@ -100,6 +101,9 @@ type Flags struct {
 	httpVerbThread          int
 	httpVerbFollowRedirects bool
 	httpVerbWebDAVMethods   bool
+
+	// Client-side
+	htmlInjection bool
 
 	// Weak Cryptography
 	drown            bool
@@ -195,6 +199,8 @@ var flagGroups = map[string]string{
 	"follow-redirects":      "Input Validation",
 	"webdav-methods":        "Input Validation",
 
+	"html-injection": "Client-side",
+
 	"drown":                  "Weak Cryptography",
 	"lucky13":                "Weak Cryptography",
 	"beast":                  "Weak Cryptography",
@@ -232,7 +238,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore ||
 		flags.nullCiphers || flags.crime || flags.insecureRenegotiation || flags.logjam || flags.breach ||
 		flags.sweet32 || flags.heartbleed || flags.poodle || flags.tlsFallbackSCSV || flags.winshock ||
-		flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering
+		flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering || flags.htmlInjection
 }
 
 func main() {
@@ -253,6 +259,13 @@ func main() {
 			if flags.reflectedXSS {
 				if flags.payloadFile == "" {
 					fmt.Println("Please provide payload file path when using --reflected-xss (--payload-file string)")
+					return
+				}
+			}
+
+			if flags.htmlInjection {
+				if flags.payloadFile == "" {
+					fmt.Println("Please provide payload file path when using --html-injection (--payload-file string)")
 					return
 				}
 			}
@@ -432,7 +445,7 @@ func main() {
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime || flags.insecureRenegotiation ||
 				flags.logjam || flags.breach || flags.sweet32 || flags.heartbleed || flags.poodle ||
-				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering
+				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering || flags.htmlInjection
 
 			var URL, ipAddress string
 			if requiresTarget {
@@ -631,6 +644,10 @@ func main() {
 				inputvalidation.ReflectedXSS(URL, flags.payloadFile)
 			}
 
+			if flags.htmlInjection {
+				clientside.HTMLInjection(URL, flags.payloadFile)
+			}
+
 			if flags.httpVerbTampering {
 				port := flags.port
 				if port == "" {
@@ -715,13 +732,16 @@ func main() {
 
 	// Input Validation
 	rootCmd.Flags().BoolVar(&flags.reflectedXSS, "reflected-xss", false, "Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser")
-	rootCmd.Flags().StringVar(&flags.payloadFile, "payload-file", "", "Path to file containing the XSS payload (required with --reflected-xss)")
+	rootCmd.Flags().StringVar(&flags.payloadFile, "payload-file", "", "Path to file containing payloads (required with --reflected-xss or --html-injection)")
 	rootCmd.Flags().BoolVar(&flags.httpVerbTampering, "http-verb-tampering", false, "Enumerate and test HTTP methods for verb tampering")
 	rootCmd.Flags().StringVar(&flags.httpVerbCookies, "cookies", "", "Cookies to send with HTTP verb tampering requests (e.g. \"cookie1=value; cookie2=value\")")
 	rootCmd.Flags().StringArrayVar(&flags.httpVerbHeaders, "header", nil, "Extra HTTP header for verb tampering (repeatable, e.g. --header \"Header1: Value1\")")
 	rootCmd.Flags().IntVar(&flags.httpVerbThread, "thread", 0, "Number of threads for HTTP verb tampering (default: 5)")
 	rootCmd.Flags().BoolVar(&flags.httpVerbFollowRedirects, "follow-redirects", false, "Follow HTTP redirects when testing methods")
 	rootCmd.Flags().BoolVar(&flags.httpVerbWebDAVMethods, "webdav-methods", false, "Include WebDAV methods (PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK) in verb tampering tests")
+
+	// Client-side
+	rootCmd.Flags().BoolVar(&flags.htmlInjection, "html-injection", false, "Test for HTML injection by injecting payloads into query parameters and confirming DOM injection via headless browser")
 
 	// Weak Cryptography
 	rootCmd.Flags().BoolVar(&flags.drown, "drown", false, "Test for SSLv2 (CVE-2015-3197, CVE-2016-0703 and CVE-2016-0800 DROWN) vulnerabilities")
@@ -777,7 +797,7 @@ func main() {
 			groups[group] = append(groups[group], line)
 		})
 
-		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Input Validation", "Weak Cryptography", "Other"}
+		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Input Validation", "Client-side", "Weak Cryptography", "Other"}
 		for _, group := range order {
 			if lines, ok := groups[group]; ok {
 				fmt.Printf("[%s]\n", group)
