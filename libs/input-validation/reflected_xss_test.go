@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -24,6 +25,25 @@ func startVulnServer(t *testing.T) *http.Server {
 	go srv.ListenAndServe()
 	time.Sleep(200 * time.Millisecond)
 	return srv
+}
+
+func TestInjectTargetsNamedXSSPayload(t *testing.T) {
+	targets, err := injectTargets("http://localhost:8000/innerhtml.html", `?user=<img src=x onerror=alert(1)>`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targets) != 1 {
+		t.Fatalf("expected 1 target, got %d", len(targets))
+	}
+	if targets[0].Payload != `<img src=x onerror=alert(1)>` {
+		t.Fatalf("payload = %q", targets[0].Payload)
+	}
+	if strings.Contains(targets[0].URL, "+") {
+		t.Fatalf("URL should use %%20 not +: %s", targets[0].URL)
+	}
+	if !strings.Contains(targets[0].URL, "user=") {
+		t.Fatalf("missing user param: %s", targets[0].URL)
+	}
 }
 
 func TestScannerReflectiveVuln(t *testing.T) {

@@ -1,4 +1,4 @@
-package inputvalidation
+package clientside
 
 import (
 	"bufio"
@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -573,47 +574,135 @@ func (p *pageTarget) close(ctx context.Context, cp *chromeProcess) {
 	}
 }
 
-const interactionEvalScript = `() => {
-	function tryJS(val) {
-		val = (val || '').trim();
-		if (/^javascript:/i.test(val)) {
-			try { eval(val.replace(/^javascript:/i, '')); } catch(_) {}
+// htmlInjectionProbeScript checks whether payload HTML was parsed into live DOM nodes.
+// It does NOT treat a raw substring match in the full document HTML as proof — lab pages
+// often embed the example payload in links (e.g. ?inject=%3Ciframe...), which caused
+// false baseline hits.
+const htmlInjectionProbeScript = `(payload) => {
+	if (!payload || !document.documentElement) return false;
+
+	// Meta refresh: match live <meta http-equiv=refresh> nodes (document.write into <head>).
+	if (/http-equiv\s*=\s*["']?refresh/i.test(payload)) {
+		const metas = document.querySelectorAll('meta[http-equiv="refresh" i], meta[http-equiv="Refresh"], meta[http-equiv="REFRESH"]');
+		const wantContent = (payload.match(/content\s*=\s*["']([^"']*)["']/i) || [])[1] || '';
+		const wantURL = ((wantContent.match(/url\s*=\s*([^;\s]+)/i) || [])[1] || '').trim();
+		for (const m of metas) {
+			const content = m.getAttribute('content') || '';
+			if (wantContent && content.replace(/\s+/g, '') === wantContent.replace(/\s+/g, '')) return true;
+			const gotURL = ((content.match(/url\s*=\s*([^;\s]+)/i) || [])[1] || '').trim();
+			if (wantURL && gotURL && wantURL === gotURL) return true;
+			if (!wantContent && content) return true;
 		}
 	}
-	document.querySelectorAll('a[href]').forEach(function(a) {
-		tryJS(a.getAttribute('href'));
-	});
-	document.querySelectorAll('form').forEach(function(f) {
-		tryJS(f.getAttribute('action'));
-	});
-	document.querySelectorAll('[formaction]').forEach(function(e) {
-		tryJS(e.getAttribute('formaction'));
-	});
-	document.querySelectorAll('button, input[type=submit], input[type=image]').forEach(function(b) {
-		try { b.click(); } catch(_) {}
-	});
-	document.querySelectorAll('input:not([type=submit]):not([type=button]):not([type=image]):not([type=hidden]), textarea').forEach(function(e) {
-		try { e.focus(); } catch(_) {}
-	});
+
+	const probe = document.createElement('div');
+	probe.innerHTML = payload;
+	const normalized = probe.innerHTML;
+
+	function attrsMatch(a, b, name) {
+		const av = a.getAttribute(name);
+		const bv = b.getAttribute(name);
+		return !!(av && bv && av === bv);
+	}
+
+	function sameResource(el, child, attr) {
+		const want = child.getAttribute(attr);
+		if (!want) return false;
+		const got = el.getAttribute(attr);
+		if (got && (got === want || got.indexOf(want) !== -1 || want.indexOf(got) !== -1)) return true;
+		try {
+			if (attr === 'src' && el.src && child.src && el.src === child.src) return true;
+			if (attr === 'href' && el.href && child.href && el.href === child.href) return true;
+		} catch (_) {}
+		return false;
+	}
+
+	function nodeInjected(child) {
+		if (!child || !child.tagName) return false;
+		if (child.id && document.getElementById(child.id)) return true;
+
+		const tag = child.tagName;
+		const candidates = document.getElementsByTagName(tag);
+		for (const el of candidates) {
+			if (child.outerHTML && el.outerHTML === child.outerHTML) return true;
+			if (attrsMatch(child, el, 'onerror') || attrsMatch(child, el, 'onload')) return true;
+			if (sameResource(el, child, 'src') && (child.getAttribute('onerror') || child.getAttribute('onload') || tag === 'IFRAME' || tag === 'SCRIPT')) return true;
+			if (sameResource(el, child, 'href') && (tag === 'BASE' || tag === 'LINK' || tag === 'A')) return true;
+			if (tag === 'IFRAME' && sameResource(el, child, 'src')) return true;
+			if (tag === 'BASE' && sameResource(el, child, 'href')) return true;
+			if (tag === 'LINK' && attrsMatch(child, el, 'rel') && sameResource(el, child, 'href')) return true;
+			if (tag === 'META') {
+				const cHttp = (child.getAttribute('http-equiv') || '').toLowerCase();
+				const eHttp = (el.getAttribute('http-equiv') || '').toLowerCase();
+				if (cHttp && cHttp === eHttp) {
+					const cc = child.getAttribute('content') || '';
+					const ec = el.getAttribute('content') || '';
+					if (cc && ec && (ec === cc || ec.toLowerCase().indexOf('url=') !== -1 && cc.toLowerCase().indexOf('url=') !== -1 &&
+						ec.replace(/\s+/g, '') === cc.replace(/\s+/g, ''))) return true;
+					if (cHttp === 'refresh' && eHttp === 'refresh' && cc && ec) {
+						const curl = (cc.match(/url\s*=\s*([^;]+)/i) || [])[1];
+						const eurl = (ec.match(/url\s*=\s*([^;]+)/i) || [])[1];
+						if (curl && eurl && curl.trim() === eurl.trim()) return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	for (const child of probe.children) {
+		if (nodeInjected(child)) return true;
+	}
+
+	// Common lab sinks: only count markup that was actually parsed into the sink.
+	const sinks = ['content', 'Welcome', 'out', 'inject-preview']
+		.map(id => document.getElementById(id))
+		.filter(Boolean);
+	for (const sink of sinks) {
+		const w = sink.innerHTML;
+		if (normalized && w.indexOf(normalized) !== -1) return true;
+		for (const child of probe.children) {
+			if (child.outerHTML && w.indexOf(child.outerHTML) !== -1) return true;
+			if (child.tagName === 'IFRAME' && sink.querySelector('iframe')) {
+				const want = child.getAttribute('src');
+				if (want && sink.querySelector('iframe[src="' + want.replace(/"/g, '\\"') + '"]')) return true;
+			}
+			const text = (child.textContent || '').trim();
+			if (text && w.indexOf(text) !== -1 && child.tagName &&
+				w.toLowerCase().indexOf('<' + child.tagName.toLowerCase()) !== -1) return true;
+		}
+	}
+
+	const idMatch = payload.match(/\bid\s*=\s*["']([^"']+)["']/i);
+	if (idMatch && document.getElementById(idMatch[1])) return true;
+
+	const dataMatch = payload.match(/\bdata-webregon\s*=\s*["']([^"']+)["']/i);
+	if (dataMatch) {
+		try {
+			if (document.querySelector('[data-webregon="' + dataMatch[1].replace(/"/g, '\\"') + '"]')) return true;
+		} catch (_) {}
+	}
+
+	return false;
 }`
 
-func (cp *chromeProcess) dialogFired(ctx context.Context, targetURL string) (bool, error) {
+func (cp *chromeProcess) htmlInjected(ctx context.Context, targetURL, payload string) (bool, error) {
 	page, err := cp.newPage(ctx)
 	if err != nil {
 		return false, fmt.Errorf("new page: %w", err)
 	}
 	defer page.close(ctx, cp)
 
-	dialogCh := make(chan bool, 1)
+	dialogCh := make(chan struct{}, 1)
 	page.browser.onSession(page.sessionID, "Page.javascriptDialogOpening", func(_ json.RawMessage) {
 		select {
-		case dialogCh <- true:
+		case dialogCh <- struct{}{}:
 		default:
 		}
 		_ = page.callAsync("Page.handleJavaScriptDialog", map[string]any{"accept": true})
 	})
 
-	loadCh := make(chan struct{}, 1)
+	loadCh := make(chan struct{}, 4)
 	page.browser.onSession(page.sessionID, "Page.loadEventFired", func(_ json.RawMessage) {
 		select {
 		case loadCh <- struct{}{}:
@@ -621,103 +710,269 @@ func (cp *chromeProcess) dialogFired(ctx context.Context, targetURL string) (boo
 		}
 	})
 
+	navCh := make(chan string, 8)
+	dest := metaRefreshDestination(payload)
+	page.browser.onSession(page.sessionID, "Page.frameNavigated", func(params json.RawMessage) {
+		var p struct {
+			Frame struct {
+				URL      string `json:"url"`
+				ParentID string `json:"parentId"`
+			} `json:"frame"`
+		}
+		if json.Unmarshal(params, &p) != nil {
+			return
+		}
+		if p.Frame.URL == "" || p.Frame.URL == "about:blank" {
+			return
+		}
+		// Prefer top-level frame; still accept if URL matches meta-refresh destination.
+		if p.Frame.ParentID != "" && (dest == "" || !urlIndicatesMetaRefresh(targetURL, p.Frame.URL, dest)) {
+			return
+		}
+		select {
+		case navCh <- p.Frame.URL:
+		default:
+		}
+	})
+
+	// Persist meta-refresh evidence across same-origin redirects (0s refresh navigates away).
+	if _, err := page.call(ctx, "Page.addScriptToEvaluateOnNewDocument", map[string]any{
+		"source": metaRefreshCaptureScript,
+	}); err != nil {
+		return false, err
+	}
+
 	if _, err := page.call(ctx, "Page.navigate", map[string]any{"url": targetURL}); err != nil {
 		if !isExpectedNavError(err) {
 			return false, err
 		}
 	}
 
-	// Wait for load or an early dialog (e.g. <img onerror=alert(1)> via innerHTML).
+	// Follow meta-refresh / multi-step navigations for up to a few seconds.
+	deadline := time.Now().Add(5 * time.Second)
+	start := time.Now()
+	for time.Now().Before(deadline) {
+		select {
+		case <-dialogCh:
+			return true, nil
+		case <-loadCh:
+		case navURL := <-navCh:
+			if dest != "" && urlIndicatesMetaRefresh(targetURL, navURL, dest) {
+				return true, nil
+			}
+		case <-ctx.Done():
+			return false, ctx.Err()
+		case <-time.After(150 * time.Millisecond):
+		}
+
+		if href, hrefErr := page.currentURL(ctx); hrefErr == nil && href != "" {
+			if dest != "" && urlIndicatesMetaRefresh(targetURL, href, dest) {
+				return true, nil
+			}
+		}
+
+		if ok, _ := page.metaRefreshCaptured(ctx, dest); ok {
+			return true, nil
+		}
+
+		// After a short settle, also probe the live DOM (meta still present on 5s refresh).
+		if time.Since(start) > 300*time.Millisecond {
+			if ok, _ := page.domHasInjectedHTML(ctx, payload); ok {
+				return true, nil
+			}
+		}
+	}
+
 	select {
 	case <-dialogCh:
 		return true, nil
-	case <-loadCh:
-	case <-time.After(5 * time.Second):
-	case <-ctx.Done():
-		return false, ctx.Err()
-	}
-
-	select {
-	case fired := <-dialogCh:
-		return fired, nil
 	default:
 	}
 
-	// Brief settle time for deferred/onerror handlers after load.
-	select {
-	case fired := <-dialogCh:
-		return fired, nil
-	case <-time.After(500 * time.Millisecond):
-	case <-ctx.Done():
-		return false, ctx.Err()
-	}
-
-	select {
-	case fired := <-dialogCh:
-		return fired, nil
-	default:
-	}
-
-	if runtime.GOOS == "windows" {
-		_, _ = page.triggerCDP(ctx)
-		select {
-		case fired := <-dialogCh:
-			return fired, nil
-		default:
-		}
-	}
-
-	if _, err := page.call(ctx, "Runtime.evaluate", map[string]any{
-		"expression":    "(" + interactionEvalScript + ")()",
-		"awaitPromise":  false,
-		"returnByValue": true,
-	}); err != nil {
-		select {
-		case fired := <-dialogCh:
-			return fired, nil
-		default:
-			return false, err
-		}
-	}
-
-	select {
-	case fired := <-dialogCh:
-		return fired, nil
-	case <-time.After(3 * time.Second):
-		return false, nil
-	case <-ctx.Done():
-		return false, ctx.Err()
-	}
-}
-
-func (p *pageTarget) triggerCDP(ctx context.Context) (bool, error) {
-	clickJS := `(sel) => {
-		const el = document.querySelector(sel);
-		if (!el) return false;
-		el.scrollIntoView();
-		el.click();
-		return true;
-	}`
-	for _, sel := range []string{"button", "input[type=submit]", "input[type=image]"} {
-		_, _ = p.call(ctx, "Runtime.evaluate", map[string]any{
-			"expression": fmt.Sprintf(`(%s)(%q)`, clickJS, sel),
-		})
-	}
-	links, err := p.call(ctx, "Runtime.evaluate", map[string]any{
-		"expression":    `Array.from(document.querySelectorAll('a[href]')).filter(a => /^javascript:/i.test((a.getAttribute('href')||'').trim())).length`,
-		"returnByValue": true,
-	})
-	if err == nil {
-		var res struct {
-			Value float64 `json:"value"`
-		}
-		_ = json.Unmarshal(links, &res)
-		if res.Value > 0 {
-			_, _ = p.call(ctx, "Runtime.evaluate", map[string]any{
-				"expression": `document.querySelectorAll('a[href]').forEach(a => { if (/^javascript:/i.test((a.getAttribute('href')||'').trim())) { a.scrollIntoView(); a.click(); }})`,
-			})
+	if href, hrefErr := page.currentURL(ctx); hrefErr == nil && dest != "" {
+		if urlIndicatesMetaRefresh(targetURL, href, dest) {
 			return true, nil
 		}
 	}
-	return false, nil
+
+	if ok, _ := page.metaRefreshCaptured(ctx, dest); ok {
+		return true, nil
+	}
+
+	if ok, err := page.domHasInjectedHTML(ctx, payload); err != nil {
+		select {
+		case <-dialogCh:
+			return true, nil
+		default:
+			return false, err
+		}
+	} else if ok {
+		return true, nil
+	}
+
+	select {
+	case <-dialogCh:
+		return true, nil
+	default:
+		return false, nil
+	}
+}
+
+func (p *pageTarget) currentURL(ctx context.Context) (string, error) {
+	raw, err := p.call(ctx, "Page.getFrameTree", nil)
+	if err == nil {
+		var tree struct {
+			FrameTree struct {
+				Frame struct {
+					URL string `json:"url"`
+				} `json:"frame"`
+			} `json:"frameTree"`
+		}
+		if json.Unmarshal(raw, &tree) == nil && tree.FrameTree.Frame.URL != "" {
+			return tree.FrameTree.Frame.URL, nil
+		}
+	}
+	return p.locationHref(ctx)
+}
+
+func (p *pageTarget) locationHref(ctx context.Context) (string, error) {
+	raw, err := p.call(ctx, "Runtime.evaluate", map[string]any{
+		"expression":    "location.href",
+		"returnByValue": true,
+	})
+	if err != nil {
+		return "", err
+	}
+	var res struct {
+		Result struct {
+			Type  string `json:"type"`
+			Value string `json:"value"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(raw, &res); err != nil {
+		return "", err
+	}
+	return res.Result.Value, nil
+}
+
+func (p *pageTarget) domHasInjectedHTML(ctx context.Context, payload string) (bool, error) {
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return false, err
+	}
+	raw, err := p.call(ctx, "Runtime.evaluate", map[string]any{
+		"expression":    "(" + htmlInjectionProbeScript + ")(" + string(payloadJSON) + ")",
+		"awaitPromise":  false,
+		"returnByValue": true,
+	})
+	if err != nil {
+		return false, err
+	}
+	var res struct {
+		Result struct {
+			Type  string `json:"type"`
+			Value bool   `json:"value"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(raw, &res); err != nil {
+		return false, err
+	}
+	return res.Result.Value, nil
+}
+
+// metaRefreshCaptureScript runs before page scripts. It hooks document.write/writeln
+// (the sink used by meta-refresh labs) and stores evidence in sessionStorage and
+// window.name so a 0s meta-refresh redirect does not erase the signal.
+const metaRefreshCaptureScript = `(() => {
+	const ssKey = '__webregon_meta_refresh';
+	const mark = (s) => {
+		try {
+			s = String(s || '');
+			if (!s) return;
+			if (/http-equiv\s*=\s*["']?\s*refresh/i.test(s) || /http-equiv\s*=\s*["']?\s*set-cookie/i.test(s)) {
+				try { sessionStorage.setItem(ssKey, s); } catch (e) {}
+				try { window.name = '__webregon_meta__' + s; } catch (e) {}
+			}
+			try {
+				const prev = sessionStorage.getItem('__webregon_html_write') || '';
+				sessionStorage.setItem('__webregon_html_write', prev + s);
+			} catch (e) {}
+		} catch (e) {}
+	};
+	try {
+		const origWrite = document.write.bind(document);
+		document.write = function() {
+			mark(Array.prototype.join.call(arguments, ''));
+			return origWrite.apply(document, arguments);
+		};
+		const origWriteln = document.writeln.bind(document);
+		document.writeln = function() {
+			mark(Array.prototype.join.call(arguments, ''));
+			return origWriteln.apply(document, arguments);
+		};
+	} catch (e) {}
+	const captureMeta = () => {
+		try {
+			const metas = document.querySelectorAll('meta[http-equiv="refresh" i], meta[http-equiv="Refresh"], meta[http-equiv="REFRESH"], meta[http-equiv="set-cookie" i]');
+			for (const m of metas) {
+				const content = m.getAttribute('content') || '';
+				const httpEquiv = m.getAttribute('http-equiv') || '';
+				if (content || httpEquiv) {
+					mark('<meta http-equiv="' + httpEquiv + '" content="' + content + '">');
+				}
+			}
+		} catch (e) {}
+	};
+	try {
+		new MutationObserver(captureMeta).observe(document.documentElement || document, { subtree: true, childList: true });
+	} catch (e) {}
+	document.addEventListener('DOMContentLoaded', captureMeta);
+	captureMeta();
+})();`
+
+func (p *pageTarget) metaRefreshCaptured(ctx context.Context, dest string) (bool, error) {
+	raw, err := p.call(ctx, "Runtime.evaluate", map[string]any{
+		"expression": `(function(){
+			try {
+				var a = sessionStorage.getItem('__webregon_meta_refresh') || '';
+				var b = (window.name && window.name.indexOf('__webregon_meta__') === 0)
+					? window.name.substring('__webregon_meta__'.length) : '';
+				var c = sessionStorage.getItem('__webregon_html_write') || '';
+				return a || b || ((/http-equiv\s*=\s*["']?\s*refresh/i.test(c) || /http-equiv\s*=\s*["']?\s*set-cookie/i.test(c)) ? c : '');
+			} catch (e) { return ''; }
+		})()`,
+		"returnByValue": true,
+	})
+	if err != nil {
+		return false, err
+	}
+	var res struct {
+		Result struct {
+			Type  string `json:"type"`
+			Value string `json:"value"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(raw, &res); err != nil {
+		return false, err
+	}
+	got := strings.TrimSpace(res.Result.Value)
+	if got == "" {
+		return false, nil
+	}
+	lower := strings.ToLower(got)
+	if !strings.Contains(lower, "http-equiv") {
+		return false, nil
+	}
+	if !strings.Contains(lower, "refresh") && !strings.Contains(lower, "set-cookie") {
+		return false, nil
+	}
+	if dest == "" {
+		return true, nil
+	}
+	destPath := pathOnly(dest)
+	if strings.Contains(got, dest) || (destPath != "" && strings.Contains(got, destPath)) {
+		return true, nil
+	}
+	// document.write captured the meta-refresh markup even if url= differs slightly.
+	return strings.Contains(lower, "refresh") || strings.Contains(lower, "set-cookie"), nil
 }

@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 )
@@ -74,26 +75,102 @@ func newScanner(timeout time.Duration, verbose, reflective bool) *Scanner {
 	}
 }
 
-func injectTargets(rawURL, payload string) ([]string, error) {
+type injectTarget struct {
+	URL     string
+	Payload string
+}
+
+func injectTargets(rawURL, payloadLine string) ([]injectTarget, error) {
 	parsed, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
 	}
+
+	if name, value, ok := parseQueryPayload(payloadLine); ok {
+		value = decodePayloadValue(value)
+		params := cloneValues(parsed.Query())
+		params.Set(name, value)
+		c := *parsed
+		c.RawQuery = encodeQuery(params)
+		return []injectTarget{{URL: c.String(), Payload: value}}, nil
+	}
+
 	params := parsed.Query()
 	if len(params) == 0 {
-		params.Set("q", payload)
-		parsed.RawQuery = params.Encode()
-		return []string{parsed.String()}, nil
+		return nil, fmt.Errorf("URL has no query parameters and payload does not specify one (use ?param=value in the payload file, or add ?param=test to the URL)")
 	}
-	out := make([]string, 0, len(params))
+
+	payloadLine = decodePayloadValue(payloadLine)
+	out := make([]injectTarget, 0, len(params))
 	for key := range params {
 		mod := cloneValues(params)
-		mod.Set(key, payload)
+		mod.Set(key, payloadLine)
 		c := *parsed
-		c.RawQuery = mod.Encode()
-		out = append(out, c.String())
+		c.RawQuery = encodeQuery(mod)
+		out = append(out, injectTarget{URL: c.String(), Payload: payloadLine})
 	}
 	return out, nil
+}
+
+// decodePayloadValue undoes one layer of percent-encoding when the payload file
+// already contains encoded HTML (e.g. %3Ciframe%20...).
+func decodePayloadValue(value string) string {
+	if !strings.Contains(value, "%") {
+		return value
+	}
+	decoded, err := url.QueryUnescape(value)
+	if err != nil || decoded == value {
+		return value
+	}
+	if strings.ContainsAny(decoded, "<>") || strings.HasPrefix(strings.TrimSpace(decoded), "<") {
+		return decoded
+	}
+	return value
+}
+
+// encodeQuery builds a query string using %20 for spaces (not +).
+// Client-side sinks that use decodeURIComponent do not treat + as space.
+func encodeQuery(params url.Values) string {
+	if len(params) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var parts []string
+	for _, k := range keys {
+		for _, v := range params[k] {
+			parts = append(parts, queryEscape(k)+"="+queryEscape(v))
+		}
+	}
+	return strings.Join(parts, "&")
+}
+
+func queryEscape(s string) string {
+	return strings.ReplaceAll(url.QueryEscape(s), "+", "%20")
+}
+
+// parseQueryPayload accepts lines like "?user=<img src=x onerror=alert(1)>" or "user=...".
+func parseQueryPayload(line string) (name, value string, ok bool) {
+	line = strings.TrimSpace(line)
+	if line == "" || strings.HasPrefix(line, "<") {
+		return "", "", false
+	}
+	if strings.HasPrefix(line, "?") {
+		line = strings.TrimPrefix(line, "?")
+	}
+	idx := strings.IndexByte(line, '=')
+	if idx <= 0 {
+		return "", "", false
+	}
+	name = strings.TrimSpace(line[:idx])
+	value = line[idx+1:]
+	if name == "" || strings.ContainsAny(name, "<>\"'&/?#") {
+		return "", "", false
+	}
+	return name, value, true
 }
 
 func cloneValues(v url.Values) url.Values {
@@ -197,12 +274,13 @@ func rewriteLocalhostHost(rawURL, newHost string) string {
 }
 
 func (s *Scanner) dialogFired(chrome *chromeProcess, targetURL string) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout+10*time.Second)
-	defer cancel()
-
+	var lastErr error
 	for _, candidate := range browserURLCandidates(targetURL) {
+		ctx, cancel := context.WithTimeout(context.Background(), s.timeout+10*time.Second)
 		fired, err := chrome.dialogFired(ctx, candidate)
+		cancel()
 		if err != nil {
+			lastErr = err
 			fmt.Fprintf(os.Stderr, "[warn] headless: %v\n", err)
 			continue
 		}
@@ -210,7 +288,7 @@ func (s *Scanner) dialogFired(chrome *chromeProcess, targetURL string) (bool, er
 			return true, nil
 		}
 	}
-	return false, nil
+	return false, lastErr
 }
 
 func isExpectedNavError(err error) bool {
@@ -220,8 +298,8 @@ func isExpectedNavError(err error) bool {
 		strings.Contains(msg, "context deadline exceeded")
 }
 
-func (s *Scanner) Scan(rawURL, payload string) ([]*Result, error) {
-	targets, err := injectTargets(rawURL, payload)
+func (s *Scanner) Scan(rawURL, payloadLine string) ([]*Result, error) {
+	targets, err := injectTargets(rawURL, payloadLine)
 	if err != nil {
 		return nil, err
 	}
@@ -230,19 +308,19 @@ func (s *Scanner) Scan(rawURL, payload string) ([]*Result, error) {
 	var needHeadless []*Result
 
 	for _, t := range targets {
-		r := &Result{URL: t, Payload: payload}
+		r := &Result{URL: t.URL, Payload: t.Payload}
 
 		if s.reflective {
-			s.logf("reflective mode — skipping HTTP pre-filter for %s", t)
+			s.logf("reflective mode — skipping HTTP pre-filter for %s", t.URL)
 			results = append(results, r)
 			needHeadless = append(needHeadless, r)
 			continue
 		}
 
-		s.logf("HTTP check: %s", t)
-		r.Reflected, err = s.isReflected(t, payload)
+		s.logf("HTTP check: %s", t.URL)
+		r.Reflected, err = s.isReflected(t.URL, t.Payload)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[warn] HTTP error for %s: %v\n", t, err)
+			fmt.Fprintf(os.Stderr, "[warn] HTTP error for %s: %v\n", t.URL, err)
 		}
 		results = append(results, r)
 		if r.Reflected {
