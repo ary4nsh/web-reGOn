@@ -89,9 +89,6 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --thread               Number of threads for HTTP verb tampering (default: 5)
       --webdav-methods       Include WebDAV methods (PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK) in verb tampering tests
 
-[Client-side]
-      --html-injection       Test for HTML injection by injecting payloads into query parameters and confirming DOM injection via headless browser
-
 [Weak Cryptography]
       --anonymous-ciphers    Test for anonymous (anon) cipher suites vulnerability
       --beast                Test for BEAST (CVE-2011-3389) SSLv3/TLS 1.0 CBC vulnerability
@@ -112,6 +109,9 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --ticketbleed          Test for Ticketbleed (CVE-2016-9244) vulnerability
       --tls-fallback-scsv    Check TLS_FALLBACK_SCSV (RFC 7507) downgrade attack prevention
       --winshock             Test for Winshock (CVE-2014-6321) vulnerability
+
+[Client-side]
+      --html-injection       Test for HTML injection by injecting payloads into query parameters and confirming DOM injection via headless browser
 
 [Other]
       --api-key              API key
