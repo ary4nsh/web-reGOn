@@ -35,6 +35,7 @@ import (
 	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
 	inputvalidation "github.com/ary4nsh/web-reGOn/libs/input-validation"
 	sessionmanagement "github.com/ary4nsh/web-reGOn/libs/session-management"
+	weakcryptography "github.com/ary4nsh/web-reGOn/libs/weak-cryptography"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -634,7 +635,7 @@ func main() {
 					sessionmanagement.CacheControl(URL, flags.port)
 				},
 
-				// Weak Cryptography tests run sequentially via runWeakCryptoTests (see weakcrypto_runner.go).
+				// Weak Cryptography tests run sequentially via weakcryptography.RunTests.
 
 				// Input Validation — reflected XSS runs on main goroutine below.
 			}
@@ -656,8 +657,8 @@ func main() {
 				inputvalidation.HTTPVerbTampering(URL, port, flags.httpVerbThread, flags.httpVerbCookies, flags.httpVerbHeaders, flags.wordlist, flags.httpVerbFollowRedirects, flags.httpVerbWebDAVMethods)
 			}
 
-			if anyWeakCryptoFlag(flags) {
-				runWeakCryptoTests(flags, URL, flags.port)
+			if weakcryptography.AnyFlag(toWeakCryptoFlags(flags)) {
+				weakcryptography.RunTests(toWeakCryptoFlags(flags), URL, flags.port)
 			}
 
 			for flag, function := range functions {
@@ -797,7 +798,7 @@ func main() {
 			groups[group] = append(groups[group], line)
 		})
 
-		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Input Validation", "Client-side", "Weak Cryptography", "Other"}
+		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Input Validation", "Weak Cryptography", "Client-side", "Other"}
 		for _, group := range order {
 			if lines, ok := groups[group]; ok {
 				fmt.Printf("[%s]\n", group)
@@ -814,5 +815,29 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+}
+
+func toWeakCryptoFlags(f Flags) weakcryptography.RunnerFlags {
+	return weakcryptography.RunnerFlags{
+		TestAll:               f.testAll,
+		AnonymousCiphers:      f.anonymousCiphers,
+		Beast:                 f.beast,
+		Drown:                 f.drown,
+		Freak:                 f.freak,
+		Lucky13:               f.lucky13,
+		Nomore:                f.nomore,
+		NullCiphers:           f.nullCiphers,
+		InsecureRenegotiation: f.insecureRenegotiation,
+		Breach:                f.breach,
+		Crime:                 f.crime,
+		CCSInjection:          f.ccsInjection,
+		Heartbleed:            f.heartbleed,
+		Logjam:                f.logjam,
+		Poodle:                f.poodle,
+		Sweet32:               f.sweet32,
+		Ticketbleed:           f.ticketbleed,
+		TLSFallbackSCSV:       f.tlsFallbackSCSV,
+		Winshock:              f.winshock,
 	}
 }
