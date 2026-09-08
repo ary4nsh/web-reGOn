@@ -75,6 +75,14 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
       --remember-password    Check reset password security
       --tls                  Test for TLS/SSL cipher suites security
 
+[Broken Authorization]
+      --bypass-auth          Test authorization schema bypass via rewrite-URL and client-IP headers
+      --depth                Traversal depth (e.g. 1 => ../ ; default: 1)
+      --dir-traversal        Fuzz directory traversal using TRAVERSAL marker in --url or --payload-file
+      --pattern              Optional response match pattern (auto-detected from --dst-path when omitted)
+      --timeout              Delay in milliseconds between each traversal probe (default: 500)
+      --url                  URL containing TRAVERSAL marker to fuzz (mutually exclusive with --payload-file)
+
 [Session Management]
       --cache-control        Check Cache-Control, Expires, and Strict-Transport-Security headers
       --session-cookie       Analyse session cookie security
@@ -82,9 +90,7 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
 [Input Validation]
       --cookies              Cookies to send with HTTP verb tampering requests (e.g. "cookie1=value; cookie2=value")
       --follow-redirects     Follow HTTP redirects when testing methods
-      --header               Extra HTTP header for verb tampering (repeatable, e.g. --header "Header1: Value1")
       --http-verb-tampering  Enumerate and test HTTP methods for verb tampering
-      --payload-file         Path to file containing payloads (required with --reflected-xss or --html-injection)
       --reflected-xss        Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser
       --thread               Number of threads for HTTP verb tampering (default: 5)
       --webdav-methods       Include WebDAV methods (PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK) in verb tampering tests
@@ -116,12 +122,15 @@ The documentation of this tool is available [here](https://github.com/ary4nsh/we
 [Other]
       --api-key              API key
       --domain               Domain to search for email
+      --dst-path             Destination path(s): file for --dir-traversal (e.g. /etc/passwd), or protected path(s) for --bypass-auth (e.g. /admin or /admin,/secret)
       --email                Email address to verify
       --first-name           First name of the person
+      --header               HTTP header "Name: value" (repeatable). For --http-verb-tampering: extra request headers. For --bypass-auth: override a tested header value when the name matches (e.g. --header "X-Original-URL: /donotexist1")
   -h, --help                 help for web-reGOn
       --last-name            Last name of the person
       --mac                  MAC address
       --passlist             Password list file path
+      --payload-file         Path to payload file (XSS/HTML injection payloads, or raw HTTP request template with TRAVERSAL for --dir-traversal)
   -p, --port                 Port number (e.g. for HTTP OPTIONS or FTP scan)
   -t, --threads              Number of concurrent threads (default: 50)
       --userlist             Username list file path
