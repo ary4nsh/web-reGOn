@@ -1,5 +1,5 @@
 ## Reflected XSS
-Use the `--reflected-xss` flag with `--payload-file` to test for reflected XSS by injecting payloads into query parameters and confirming JavaScript execution (alert/confirm/prompt) via a headless browser:
+Use the `--reflected-xss` flag with `--payload-file` to test for reflected XSS by injecting payloads into query parameters and confirming JavaScript execution (`alert` / `confirm` / `prompt`) via a headless browser:
 ```
 ./web-reGOn http://example.com/page --reflected-xss --payload-file [path to the payload file]
 ```
@@ -24,19 +24,25 @@ javascript:alert(1)
 
 Spaces in query values are encoded as `%20` (not `+`) so client-side sinks that use `decodeURIComponent` still work.
 
+Output statuses:
+- `[VULNERABLE]` — JavaScript execution confirmed in the headless browser
+- `[REFLECTED]` — payload appeared in the HTTP response but execution was not confirmed
+- `[SAFE]` — payload was not reflected / did not execute
+
 ## HTTP Verb Tampering
-Use the `--http-verb-tampering` flag to enumerate HTTP methods against a target URL. This can help identify dangerous enabled methods (such as PUT or DELETE) and test verb tampering to bypass access controls.
+Use the `--http-verb-tampering` flag to enumerate HTTP methods against a target URL. This can help identify dangerous enabled methods (such as `PUT` or `DELETE`) and test verb tampering to bypass access controls.
 
 By default, standard HTTP methods and custom/non-standard methods are tested. WebDAV methods are available with the optional `--webdav-methods` flag. You can also supply a custom list with `--wordlist`; methods from a wordlist are grouped automatically by type.
 
-Before testing potentially destructive methods (DELETE, COPY, PUT, PATCH, UNCHECKOUT), the tool prompts for confirmation on the same line:
+Before testing potentially destructive methods (`DELETE`, `COPY`, `PUT`, `PATCH`, `UNCHECKOUT`), the tool prompts for confirmation on the same line:
 ```
 Do you really want to test method DELETE (can be dangerous)? [y/n] n
 ```
 
-You can also use the optional `--port` flag to specify the port to test (the default port is 80). Port 80 uses `http://`, port 443 uses `https://`, and any other port uses `http://host:port`:
+You can also use the optional `--port` flag to specify the port to test (the default port is `80`). Port `80` uses `http://`, port `443` uses `https://`, and any other port uses `http://host:port`:
 ```
-./web-reGOn --http-verb-tampering [domain name] --port [port number]
+./web-reGOn --http-verb-tampering example.com
+./web-reGOn --http-verb-tampering example.com --port 443
 ```
 
 ### Method groups
