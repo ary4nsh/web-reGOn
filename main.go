@@ -30,7 +30,8 @@ import (
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/memcached"
 	"github.com/ary4nsh/web-reGOn/libs/misconfiguration/snmp"
 
-	brokenauthorization "github.com/ary4nsh/web-reGOn/libs/broken-authentication"
+	brokenauthentication "github.com/ary4nsh/web-reGOn/libs/broken-authentication"
+	brokenauthorization "github.com/ary4nsh/web-reGOn/libs/broken-authorization"
 	clientside "github.com/ary4nsh/web-reGOn/libs/client-side"
 	identitymanagement "github.com/ary4nsh/web-reGOn/libs/identity-management"
 	inputvalidation "github.com/ary4nsh/web-reGOn/libs/input-validation"
@@ -89,6 +90,15 @@ type Flags struct {
 	tls              bool
 	rememberPassword bool
 	cacheWeakness    bool
+
+	// Broken Authorization
+	dirTraversal         bool
+	bypassAuth           bool
+	dirTraversalDstPath  string
+	dirTraversalDepth    int
+	dirTraversalTimeout  int
+	dirTraversalURL      string
+	dirTraversalPattern  string
 
 	// Session Management
 	sessionCookie bool
@@ -188,6 +198,14 @@ var flagGroups = map[string]string{
 	"remember-password": "Broken Authentication",
 	"cache-weakness":    "Broken Authentication",
 
+	"dir-traversal": "Broken Authorization",
+	"bypass-auth":   "Broken Authorization",
+	"dst-path":      "Broken Authorization",
+	"depth":         "Broken Authorization",
+	"timeout":       "Broken Authorization",
+	"url":           "Broken Authorization",
+	"pattern":       "Broken Authorization",
+
 	"session-cookie": "Session Management",
 	"cache-control":  "Session Management",
 
@@ -239,7 +257,7 @@ func anyFlagSet(flags Flags) bool {
 		flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore ||
 		flags.nullCiphers || flags.crime || flags.insecureRenegotiation || flags.logjam || flags.breach ||
 		flags.sweet32 || flags.heartbleed || flags.poodle || flags.tlsFallbackSCSV || flags.winshock ||
-		flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering || flags.htmlInjection
+		flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering || flags.htmlInjection || flags.dirTraversal || flags.bypassAuth
 }
 
 func main() {
@@ -267,6 +285,26 @@ func main() {
 			if flags.htmlInjection {
 				if flags.payloadFile == "" {
 					fmt.Println("Please provide payload file path when using --html-injection (--payload-file string)")
+					return
+				}
+			}
+
+			if flags.dirTraversal {
+				if flags.dirTraversalDstPath == "" {
+					fmt.Println("Please provide destination path when using --dir-traversal (--dst-path string)")
+					return
+				}
+				hasURL := flags.dirTraversalURL != ""
+				hasPayload := flags.payloadFile != ""
+				if hasURL == hasPayload {
+					fmt.Println("Please provide exactly one of --url or --payload-file when using --dir-traversal")
+					return
+				}
+			}
+
+			if flags.bypassAuth {
+				if flags.dirTraversalDstPath == "" {
+					fmt.Println("Please provide destination path(s) when using --bypass-auth (--dst-path string)")
 					return
 				}
 			}
@@ -446,7 +484,7 @@ func main() {
 				flags.nonexistentUserEnum || flags.tls || flags.rememberPassword || flags.cacheWeakness || flags.sessionCookie || flags.cacheControl || flags.drown || flags.lucky13 || flags.beast || flags.anonymousCiphers || flags.freak || flags.nomore || flags.nullCiphers || flags.waf || flags.zoneTransfer ||
 				flags.whois || flags.cspHeader || flags.riaHeader || flags.crime || flags.insecureRenegotiation ||
 				flags.logjam || flags.breach || flags.sweet32 || flags.heartbleed || flags.poodle ||
-				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering || flags.htmlInjection
+				flags.tlsFallbackSCSV || flags.winshock || flags.ticketbleed || flags.ccsInjection || flags.testAll || flags.reflectedXSS || flags.httpVerbTampering || flags.htmlInjection || flags.dirTraversal || flags.bypassAuth
 
 			var URL, ipAddress string
 			if requiresTarget {
@@ -618,13 +656,13 @@ func main() {
 
 				// Broken Authentication
 				flags.tls: func() {
-					brokenauthorization.TlsTest(URL, flags.port)
+					brokenauthentication.TlsTest(URL, flags.port)
 				},
 				flags.rememberPassword: func() {
-					brokenauthorization.ResetPassword(URL, flags.port)
+					brokenauthentication.ResetPassword(URL, flags.port)
 				},
 				flags.cacheWeakness: func() {
-					brokenauthorization.CacheWeakness(URL, flags.port)
+					brokenauthentication.CacheWeakness(URL, flags.port)
 				},
 
 				// Session Management
@@ -647,6 +685,30 @@ func main() {
 
 			if flags.htmlInjection {
 				clientside.HTMLInjection(URL, flags.payloadFile)
+			}
+
+			if flags.dirTraversal {
+				port := brokenauthorization.ParsePort(flags.port)
+				brokenauthorization.DirectoryTraversal(brokenauthorization.Options{
+					Host:        URL,
+					Port:        port,
+					DstPath:     flags.dirTraversalDstPath,
+					Depth:       flags.dirTraversalDepth,
+					TimeoutMs:   flags.dirTraversalTimeout,
+					URL:         flags.dirTraversalURL,
+					PayloadFile: flags.payloadFile,
+					Pattern:     flags.dirTraversalPattern,
+				})
+			}
+
+			if flags.bypassAuth {
+				port := brokenauthorization.ParsePort(flags.port)
+				brokenauthorization.BypassAuth(brokenauthorization.BypassAuthOptions{
+					Host:    URL,
+					Port:    port,
+					DstPath: flags.dirTraversalDstPath,
+					Headers: flags.httpVerbHeaders,
+				})
 			}
 
 			if flags.httpVerbTampering {
@@ -727,16 +789,25 @@ func main() {
 	rootCmd.Flags().BoolVar(&flags.rememberPassword, "remember-password", false, "Check reset password security")
 	rootCmd.Flags().BoolVar(&flags.cacheWeakness, "cache-weakness", false, "Check cache-related headers and meta tags for browser cache weakness")
 
+	// Broken Authorization
+	rootCmd.Flags().BoolVar(&flags.dirTraversal, "dir-traversal", false, "Fuzz directory traversal using TRAVERSAL marker in --url or --payload-file")
+	rootCmd.Flags().BoolVar(&flags.bypassAuth, "bypass-auth", false, "Test authorization schema bypass via rewrite-URL and client-IP headers")
+	rootCmd.Flags().StringVar(&flags.dirTraversalDstPath, "dst-path", "", "Destination path(s): file for --dir-traversal (e.g. /etc/passwd), or protected path(s) for --bypass-auth (e.g. /admin or /admin,/secret)")
+	rootCmd.Flags().IntVar(&flags.dirTraversalDepth, "depth", 1, "Traversal depth (e.g. 1 => ../ ; default: 1)")
+	rootCmd.Flags().IntVar(&flags.dirTraversalTimeout, "timeout", 500, "Delay in milliseconds between each traversal probe (default: 500)")
+	rootCmd.Flags().StringVar(&flags.dirTraversalURL, "url", "", "URL containing TRAVERSAL marker to fuzz (mutually exclusive with --payload-file)")
+	rootCmd.Flags().StringVar(&flags.dirTraversalPattern, "pattern", "", "Optional response match pattern (auto-detected from --dst-path when omitted)")
+
 	// Session Management
 	rootCmd.Flags().BoolVarP(&flags.sessionCookie, "session-cookie", "", false, "Analyse session cookie security")
 	rootCmd.Flags().BoolVarP(&flags.cacheControl, "cache-control", "", false, "Check Cache-Control, Expires, and Strict-Transport-Security headers")
 
 	// Input Validation
 	rootCmd.Flags().BoolVar(&flags.reflectedXSS, "reflected-xss", false, "Test for reflected XSS by injecting payloads into query parameters and confirming execution via headless browser")
-	rootCmd.Flags().StringVar(&flags.payloadFile, "payload-file", "", "Path to file containing payloads (required with --reflected-xss or --html-injection)")
+	rootCmd.Flags().StringVar(&flags.payloadFile, "payload-file", "", "Path to payload file (XSS/HTML injection payloads, or raw HTTP request template with TRAVERSAL for --dir-traversal)")
 	rootCmd.Flags().BoolVar(&flags.httpVerbTampering, "http-verb-tampering", false, "Enumerate and test HTTP methods for verb tampering")
 	rootCmd.Flags().StringVar(&flags.httpVerbCookies, "cookies", "", "Cookies to send with HTTP verb tampering requests (e.g. \"cookie1=value; cookie2=value\")")
-	rootCmd.Flags().StringArrayVar(&flags.httpVerbHeaders, "header", nil, "Extra HTTP header for verb tampering (repeatable, e.g. --header \"Header1: Value1\")")
+	rootCmd.Flags().StringArrayVar(&flags.httpVerbHeaders, "header", nil, "HTTP header \"Name: value\" (repeatable). For --http-verb-tampering: extra request headers. For --bypass-auth: override a tested header value when the name matches (e.g. --header \"X-Original-URL: /donotexist1\")")
 	rootCmd.Flags().IntVar(&flags.httpVerbThread, "thread", 0, "Number of threads for HTTP verb tampering (default: 5)")
 	rootCmd.Flags().BoolVar(&flags.httpVerbFollowRedirects, "follow-redirects", false, "Follow HTTP redirects when testing methods")
 	rootCmd.Flags().BoolVar(&flags.httpVerbWebDAVMethods, "webdav-methods", false, "Include WebDAV methods (PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK) in verb tampering tests")
@@ -798,7 +869,7 @@ func main() {
 			groups[group] = append(groups[group], line)
 		})
 
-		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Session Management", "Input Validation", "Weak Cryptography", "Client-side", "Other"}
+		order := []string{"Reconnaissance", "Open Source Intelligence", "Misconfiguration", "Identity Management", "Broken Authentication", "Broken Authorization", "Session Management", "Input Validation", "Weak Cryptography", "Client-side", "Other"}
 		for _, group := range order {
 			if lines, ok := groups[group]; ok {
 				fmt.Printf("[%s]\n", group)
