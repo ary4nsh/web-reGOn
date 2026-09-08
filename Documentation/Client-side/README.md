@@ -38,3 +38,5 @@ Output statuses:
 - `[VULNERABLE]` — payload HTML was parsed into the DOM after injection
 - `[REFLECTED]` — payload appeared in the response but was not confirmed in the DOM
 - `[SAFE]` — payload was not reflected
+
+On **WSL/Kali**, `localhost` / `127.0.0.1` targets may be rewritten to the Windows host IP so a lab server running on Windows remains reachable.
