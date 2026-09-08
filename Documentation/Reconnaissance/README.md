@@ -1,24 +1,31 @@
 ## DNS Records
-Use the `--dns` or `-D` flag to obtain the A, AAAA, CNAME, MX, NS, TXT, SOA, HINFO, SRV, CAA, LOC, DS, DNSKEY and PTR dns records of a target:
+Use the `--dns` or `-D` flag to obtain the A, AAAA, CNAME, MX, NS, TXT, SOA, HINFO, SRV, CAA, LOC, DS, DNSKEY, and PTR DNS records of a target:
 ```
-linux-reGOn --dns example.com
+./web-reGOn --dns example.com
 ```
 
-## HTTP
-Use the `--http` or `-H` flag to receive the response status code:
+## HTTP Status Code
+Use the `--http` or `-H` flag to receive the HTTP response status code for a target:
 ```
-linux-reGOn --http example.com
+./web-reGOn --http example.com
 ```
 
 ## WAF Detection
-Use the `--waf` flag to detect a Web Application Firewall. You can also use the optional `--port` option to specify the port to test (if not specified, the default port is 443):
+Use the `--waf` flag to detect a Web Application Firewall. You can also use the optional `--port` flag to specify the port to test (default: `443`):
 ```
-linux-reGOn --waf example.com
-linux-reGOn --waf example.com --port [port number]
+./web-reGOn --waf example.com
+./web-reGOn --waf example.com --port 8443
 ```
 
 ## Zone Transfer
-Use the `--zone-transfer` flag to perform a zone transfer on a domain, if applicable:
+Use the `--zone-transfer` flag to attempt a DNS zone transfer (AXFR) against the domain’s nameservers:
 ```
-linux-reGOn --zone-transfer example.com
+./web-reGOn --zone-transfer example.com
+```
+
+## Whois
+Use the `--whois` flag to query Whois records for a domain or IP address:
+```
+./web-reGOn --whois example.com
+./web-reGOn --whois 8.8.8.8
 ```
