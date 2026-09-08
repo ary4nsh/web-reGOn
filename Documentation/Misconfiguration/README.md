@@ -1,59 +1,69 @@
 ## Content Security Policy Header
-Use the `--csp` flag to recieve and analyse Content-Security-Policy header. You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+Use the `--csp` flag to receive and analyse the `Content-Security-Policy` header. You can also use the optional `--port` flag (default: `443`):
 ```
-./linux-reGOn --csp [domain name] --port [port number]
+./web-reGOn --csp example.com
+./web-reGOn --csp example.com --port 8443
 ```
 
 ## FTP Scan
-Use the `--ftp` flag to scan the FTP service of the target and recieve banner, anonymous login status, feature set (FEAT command), available commands (SITE and HELP commands) and Whether the control channel requires TLS (AUTH TLS reply). You can also use the optional `--port` flag to specify the port to test (the default port is 21):
+Use the `--ftp` flag to scan the FTP service of the target and receive banner, anonymous login status, feature set (`FEAT`), available commands (`SITE` / `HELP`), and whether the control channel requires TLS (`AUTH TLS` reply). You can also use the optional `--port` flag (default: `21`):
 ```
-./linux-reGOn --ftp [ip address] --port [port number]
+./web-reGOn --ftp 192.0.2.10
+./web-reGOn --ftp 192.0.2.10 --port 2121
 ```
 
 ## HTTP Strict Transport Security Header
-Use the `--hsts-header` flag to check HSTS and security headers. You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+Use the `--hsts-header` flag to check HSTS and related security headers. You can also use the optional `--port` flag (default: `443`):
 ```
-./linux-reGOn --hsts-header [ip address] --port [port number]
+./web-reGOn --hsts-header example.com
+./web-reGOn --hsts-header example.com --port 8443
 ```
 
 ## HTTP OPTIONS
-Use the `--http-options` flag to send HTTP OPTIONS request and recieve it's response. You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+Use the `--http-options` flag to send an HTTP `OPTIONS` request and receive the response. You can also use the optional `--port` flag (default: `443`):
 ```
-./linux-reGOn --http-options [ip address] --port [port number]
+./web-reGOn --http-options example.com
+./web-reGOn --http-options example.com --port 8080
 ```
 
 ## Memcached
-Use the `--memcached` flag to Scan the Memcached service og the target and recieve server metadata (service version, uptime, ...), Runtime statistics (Hit ratio, bytes used, connection count, ...), Configuration settings (Max bytes, max connections, growth factor, slab sizes, ...) and Every cached key and its raw value. You can also use the optional `--port` flag to specify the port to test (the default port is 11211):
+Use the `--memcached` flag to scan a Memcached service and receive server metadata (version, uptime, …), runtime statistics (hit ratio, bytes used, connection count, …), configuration settings (max bytes, max connections, growth factor, slab sizes, …), and cached keys with raw values when accessible. You can also use the optional `--port` flag (default: `11211`):
 ```
-./linux-reGOn --memcached [ip address] --port [port number]
+./web-reGOn --memcached 192.0.2.10
+./web-reGOn --memcached 192.0.2.10 --port 11211
 ```
 
 ## Path Confusion
-Use the `--path-confusion` flag with `--wordlist` flag to test Path Confusion vunerability. Successful results need manual interception on the target webpage because you might find false positive results:
+Use the `--path-confusion` flag with `--wordlist` to test path confusion. Successful results often need manual verification because false positives are possible. You can also use the optional `--threads` / `-t` flag (default: `50`):
 ```
-./linux-reGOn --path-confusion [domain name] --wordlist [wordlist path]
+./web-reGOn --path-confusion --wordlist [wordlist path] example.com
+./web-reGOn --path-confusion --wordlist [wordlist path] example.com --threads 100
 ```
 
 ## Rich Internet Application
-Use the `--ria` flag to fetch both crossdomain.xml and clientaccesspolicy.xml policy files. You can also use the optional `--port` flag to specify the port to test (the default port is 443):
+Use the `--ria` flag to fetch both `crossdomain.xml` and `clientaccesspolicy.xml` policy files. You can also use the optional `--port` flag (default: `443`):
 ```
-./linux-reGOn --ria [domain name] --port [port number]
+./web-reGOn --ria example.com
+./web-reGOn --ria example.com --port 8443
 ```
 
 ## SNMP Enumerate Shares
-Use the `--snmp-enumshares` flag to pull Windows network-share information from a target IP using community string “public” in SNMPv2c. You can also use the optional `--port` flag to specify the port to test (the default port is 161):
+Use the `--snmp-enumshares` flag to pull Windows network-share information from a target IP using community string `public` (SNMPv2c). You can also use the optional `--port` flag (default: `161`):
 ```
-./linux-reGOn --snmp-enumshares [ip address] --port [port number]
+./web-reGOn --snmp-enumshares 192.0.2.10
+./web-reGOn --snmp-enumshares 192.0.2.10 --port 161
 ```
 
 ## SNMP Enumerate Users
-Use the `--snmp-enumusers` flag to enumerate SNMP users in Windows or Sun platforms using community string “public”. You can also use the optional `--port` flag to specify the port to test (the default port is 161):
+Use the `--snmp-enumusers` flag to enumerate SNMP users on Windows or Sun platforms using community string `public`. You can also use the optional `--port` flag (default: `161`):
 ```
-./linux-reGOn --snmp-enumusers [ip address] --port [port number]
+./web-reGOn --snmp-enumusers 192.0.2.10
+./web-reGOn --snmp-enumuser 192.0.2.10s --port 161
 ```
 
 ## SNMP Walk
-Use the `--snmp-walk` flag to walk the entire branch of SNMPv2c server sequentially using Get-Next, starting from standard MIB-2 root (.1.3.6.1.2.1). You can also use the optional `--port` flag to specify the port to test (the default port is 161):
+Use the `--snmp-walk` flag to walk an SNMPv2c branch sequentially using Get-Next, starting from the standard MIB-2 root (`.1.3.6.1.2.1`). You can also use the optional `--port` flag (default: `161`):
 ```
-./linux-reGOn --snmp-walk [ip address] --port [port number]
+./web-reGOn --snmp-walk 192.0.2.10
+./web-reGOn --snmp-walk 192.0.2.10 --port 161
 ```
