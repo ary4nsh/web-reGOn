@@ -211,3 +211,26 @@ You can also use the optional `--port` flag (default: `443`):
 ./web-reGOn --winshock example.com
 ./web-reGOn --winshock example.com --port 8443
 ```
+
+
+## Padding Oracle
+Use the `--padding-oracle` flag to decrypt a CBC token by exploiting a server-side padding oracle (PadBuster decrypt mode). Every oracle response is classified as padding-valid or padding-invalid, and the target block is then recovered one byte at a time; no key is needed.
+
+Supply the target URL (positional argument), the captured ciphertext sample (`--token`), and the error marker the server returns for bad padding (`--error-msg`). The token must decode to a whole number of blocks (default block size is `16`).
+
+The oracle endpoint is derived from the target URL: a trailing `/encrypt` is swapped for `/decrypt` and the query string is dropped, so pass the encrypt endpoint that produced the token. A URL with no `/encrypt` segment keeps its path unchanged. Use the optional `--port` flag to override the port taken from the URL.
+
+If `--error-msg` is omitted, the tool probes all 256 values of the last byte first and infers the padding-error signature from the most frequent response; that automatic mode is less reliable on noisy endpoints. Use `--encoding` when the token is not standard Base64 (`0`=Base64, `1`=Lower HEX, `2`=Upper HEX, `3`=.NET UrlToken, `4`=WebSafe Base64), and repeat `--po-cookie` for each cookie whose value carries the token.
+
+Note that many servers return a single generic error for every kind of failure: bad padding, a bad UTF-8 sequence in the decrypted plaintext, or a failed integrity check. Such an endpoint is still a usable oracle, because the scan walks from `0xff` down to `0x00` and keeps the first value the server does not flag. It does mean an occasional stray hit is possible; when a decrypted plaintext looks wrong, capture a second sample and confirm the block by hand.
+
+``` 
+./web-reGOn "http://127.0.0.1:5000/encrypt?data=user=guest" --padding-oracle --port 5000 --token "YWJjZGVmMDEyMzQ1Njc4OQea74b3T7jnT1u1Yba3/38=" --error-msg padding_error
+./web-reGOn "http://10.0.0.5/encrypt?data=user=guest" --padding-oracle --port 8443 --token "ABCD...==" --encoding 0 --error-msg padding_error
+./web-reGOn "http://10.0.0.5/encrypt?data=user=guest" --padding-oracle --port 8443 --token "..." --error-msg "Invalid padding" --block-size 16
+```
+
+To also send the token inside a cookie, add one `--po-cookie` per cookie:
+```
+./web-reGOn "http://127.0.0.1:5000/encrypt?data=user=guest" --padding-oracle --port 5000 --token "..." --error-msg padding_error --po-cookie "auth=..."
+```
