@@ -1,6 +1,4 @@
 // padding-oracle.go
-// Go port of PadBuster v0.3.3 decrypt mode, as a library for libs/weak-cryptography.
-// FOR EDUCATION / AUTHORIZED TESTING ONLY.
 package weakcryptography
 
 import (
@@ -154,15 +152,14 @@ func (o *oracle) analyze(cur []byte) error {
 	return nil
 }
 
-// blockIntermediate recovers D_k(cur) byte by byte (PadBuster processBlock).
+// blockIntermediate recovers D_k(cur) byte by byte.
 //
-// The scan runs from 0xff down to 0x00 and the first accepted candidate wins,
-// exactly like PadBuster. There is deliberately no extra confirm request on
+// The scan runs from 0xff down to 0x00 and the first accepted candidate wins. 
+// There is deliberately no extra confirm request on
 // the last byte of a block: flipping a neighbouring byte of the forged block
 // also changes the decrypted plaintext, so an oracle that folds unrelated
 // failures (a UTF-8 decode error on the recovered plaintext, for instance) into
-// its padding-error response would reject a genuine hit. PadBuster leaves that
-// ambiguity to its interactive mode; so do we.
+// its padding-error response would reject a genuine hit.
 func (o *oracle) blockIntermediate(cur []byte) ([]byte, error) {
 	bs := o.blockSize
 	test := make([]byte, bs)
