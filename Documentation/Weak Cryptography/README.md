@@ -214,7 +214,7 @@ You can also use the optional `--port` flag (default: `443`):
 
 
 ## Padding Oracle
-Use the `--padding-oracle` flag to decrypt a CBC token by exploiting a server-side padding oracle (PadBuster decrypt mode). Every oracle response is classified as padding-valid or padding-invalid, and the target block is then recovered one byte at a time; no key is needed.
+Use the `--padding-oracle` flag to decrypt a CBC token by exploiting a server-side padding oracle (decrypt mode). Every oracle response is classified as padding-valid or padding-invalid, and the target block is then recovered one byte at a time; no key is needed.
 
 Supply the target URL (positional argument), the captured ciphertext sample (`--token`), and the error marker the server returns for bad padding (`--error-msg`). The token must decode to a whole number of blocks (default block size is `16`).
 
