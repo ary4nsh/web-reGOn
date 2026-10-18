@@ -138,12 +138,27 @@ type Flags struct {
 	testAll               bool
 
 	// Padding oracle
-	paddingOracle        bool
-	paddingOracleToken   string
-	paddingOracleEnc     int
-	paddingOracleErrMsg  string
-	paddingOracleBlock   int
-	paddingOracleCookies []string
+	paddingOracle            bool
+	paddingOracleToken       string
+	paddingOracleEnc         int
+	paddingOracleErrMsg      string
+	paddingOracleBlock       int
+	paddingOracleCookies     []string
+	paddingOraclePost        string
+	paddingOracleHeaders     []string
+	paddingOraclePrefix      string
+	paddingOracleNoEnc       bool
+	paddingOracleNoIV        bool
+	paddingOraclePlain       string
+	paddingOracleEncTxt      string
+	paddingOracleCipher      string
+	paddingOracleInterBytes  string
+	paddingOracleResume      int
+	paddingOracleBrute       bool
+	paddingOracleInteractive bool
+	paddingOracleBody        bool
+	paddingOracleNoBody      bool
+	paddingOracleVerbose     bool
 
 	// Others
 	apiKey      string
@@ -251,12 +266,27 @@ var flagGroups = map[string]string{
 	"ccs-injection":          "Weak Cryptography",
 	"test-all":               "Weak Cryptography",
 
-	"padding-oracle": "Weak Cryptography",
-	"token":          "Weak Cryptography",
-	"encoding":       "Weak Cryptography",
-	"error-msg":      "Weak Cryptography",
-	"block-size":     "Weak Cryptography",
-	"po-cookie":      "Weak Cryptography",
+	"padding-oracle":  "Weak Cryptography",
+	"token":           "Weak Cryptography",
+	"encoding":        "Weak Cryptography",
+	"error-msg":       "Weak Cryptography",
+	"block-size":      "Weak Cryptography",
+	"po-cookie":       "Weak Cryptography",
+	"po-post":         "Weak Cryptography",
+	"po-header":       "Weak Cryptography",
+	"po-prefix":       "Weak Cryptography",
+	"po-noencode":     "Weak Cryptography",
+	"po-noiv":         "Weak Cryptography",
+	"po-plaintext":    "Weak Cryptography",
+	"po-encodedtext":  "Weak Cryptography",
+	"po-ciphertext":   "Weak Cryptography",
+	"po-intermediate": "Weak Cryptography",
+	"po-resume":       "Weak Cryptography",
+	"po-bruteforce":   "Weak Cryptography",
+	"po-interactive":  "Weak Cryptography",
+	"po-usebody":      "Weak Cryptography",
+	"po-ignore-body":  "Weak Cryptography",
+	"po-verbose":      "Weak Cryptography",
 
 	// Shared across multiple feature groups
 	"dst-path":     "Shared",
@@ -482,11 +512,26 @@ func main() {
 
 			if flags.paddingOracle {
 				weakcryptography.PaddingOracle(URL, flags.port, weakcryptography.PaddingOracleOptions{
-					Token:     flags.paddingOracleToken,
-					Encoding:  flags.paddingOracleEnc,
-					ErrorMsg:  flags.paddingOracleErrMsg,
-					BlockSize: flags.paddingOracleBlock,
-					Cookies:   flags.paddingOracleCookies,
+					Token:        flags.paddingOracleToken,
+					Encoding:     flags.paddingOracleEnc,
+					ErrorMsg:     flags.paddingOracleErrMsg,
+					BlockSize:    flags.paddingOracleBlock,
+					Cookies:      flags.paddingOracleCookies,
+					Post:         flags.paddingOraclePost,
+					Headers:      flags.paddingOracleHeaders,
+					Prefix:       flags.paddingOraclePrefix,
+					NoEncode:     flags.paddingOracleNoEnc,
+					NoIV:         flags.paddingOracleNoIV,
+					IgnoreBody:   flags.paddingOracleNoBody,
+					UseBody:      flags.paddingOracleBody,
+					BruteForce:   flags.paddingOracleBrute,
+					Interactive:  flags.paddingOracleInteractive,
+					Verbose:      flags.paddingOracleVerbose,
+					PlainText:    flags.paddingOraclePlain,
+					EncodedText:  flags.paddingOracleEncTxt,
+					CipherText:   flags.paddingOracleCipher,
+					Intermediate: flags.paddingOracleInterBytes,
+					Resume:       flags.paddingOracleResume,
 				})
 			}
 
@@ -679,8 +724,8 @@ func main() {
 	rootCmd.Flags().BoolVar(&flags.ccsInjection, "ccs-injection", false, "Test for CCS injection (CVE-2014-0224)")
 	rootCmd.Flags().BoolVar(&flags.testAll, "test-all", false, "Run all TLS vulnerability checks in order")
 
-	// Padding oracle (PadBuster decrypt mode)
-	rootCmd.Flags().BoolVar(&flags.paddingOracle, "padding-oracle", false, "Decrypt a CBC token through a padding oracle (target URL is the positional argument, e.g. http://host/encrypt?data=...)")
+	// Padding oracle (decrypt mode)
+	rootCmd.Flags().BoolVar(&flags.paddingOracle, "padding-oracle", false, "Decrypt a CBC token through a padding oracle (the oracle request URL is the positional argument, e.g. http://host/decrypt?token=...)")
 	rootCmd.Flags().StringVar(&flags.paddingOracleToken, "token", "", "Captured ciphertext sample token to decrypt")
 	rootCmd.Flags().IntVar(&flags.paddingOracleEnc, "encoding", 0, "Token encoding: 0=Base64 1=Lower HEX 2=Upper HEX 3=.NET UrlToken 4=WebSafe Base64")
 	rootCmd.Flags().StringVar(&flags.paddingOracleErrMsg, "error-msg", "", "String present in responses with a padding error (skips automatic oracle detection)")
@@ -688,6 +733,21 @@ func main() {
 	rootCmd.Flags().StringArrayVar(&flags.paddingOracleCookies, "po-cookie", nil, "Cookie \"name=value\" containing the token, sent with each oracle request (repeatable)")
 
 	// Others
+	rootCmd.Flags().StringVar(&flags.paddingOraclePost, "po-post", "", "Request body for POST oracles; the token is substituted into it (PadBuster -post)")
+	rootCmd.Flags().StringArrayVar(&flags.paddingOracleHeaders, "po-header", nil, "Custom header (repeatable) sent with each oracle request (PadBuster -headers)")
+	rootCmd.Flags().StringVar(&flags.paddingOraclePrefix, "po-prefix", "", "Encoded bytes prepended to every forged sample (PadBuster -prefix)")
+	rootCmd.Flags().BoolVar(&flags.paddingOracleNoEnc, "po-noencode", false, "Do not URL-encode the forged sample (PadBuster -noencode)")
+	rootCmd.Flags().BoolVar(&flags.paddingOracleNoIV, "po-noiv", false, "The sample carries no IV; prepend a null block before attacking (PadBuster -noiv)")
+	rootCmd.Flags().StringVar(&flags.paddingOraclePlain, "po-plaintext", "", "Forge a token that decrypts to this plaintext (PadBuster -plaintext)")
+	rootCmd.Flags().StringVar(&flags.paddingOracleEncTxt, "po-encodedtext", "", "Forge a token for this already-encoded plaintext (PadBuster -encodedtext)")
+	rootCmd.Flags().StringVar(&flags.paddingOracleCipher, "po-ciphertext", "", "Hex ciphertext to start forging from (PadBuster -ciphertext)")
+	rootCmd.Flags().StringVar(&flags.paddingOracleInterBytes, "po-intermediate", "", "Hex intermediate bytes; skips recovery of the first block (PadBuster -intermediate)")
+	rootCmd.Flags().IntVar(&flags.paddingOracleResume, "po-resume", 0, "Resume decryption or brute force at this block or attempt (PadBuster -resume)")
+	rootCmd.Flags().BoolVar(&flags.paddingOracleBrute, "po-bruteforce", false, "Recover the first three intermediate bytes by brute force (PadBuster -bruteforce)")
+	rootCmd.Flags().BoolVar(&flags.paddingOracleInteractive, "po-interactive", false, "Prompt before accepting each recovered byte (PadBuster -interactive)")
+	rootCmd.Flags().BoolVar(&flags.paddingOracleBody, "po-usebody", false, "Include the response body in the oracle signature (PadBuster -usebody)")
+	rootCmd.Flags().BoolVar(&flags.paddingOracleNoBody, "po-ignore-body", false, "Ignore the response body during oracle detection (PadBuster -ignorecontent)")
+	rootCmd.Flags().BoolVar(&flags.paddingOracleVerbose, "po-verbose", false, "Print every oracle request and per-byte recovery detail (PadBuster -veryverbose)")
 	rootCmd.Flags().StringVar(&flags.domain, "domain", "", "Domain to search for email")
 	rootCmd.Flags().StringVar(&flags.firstName, "first-name", "", "First name of the person")
 	rootCmd.Flags().StringVar(&flags.lastName, "last-name", "", "Last name of the person")
