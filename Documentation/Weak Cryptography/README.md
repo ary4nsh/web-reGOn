@@ -212,25 +212,46 @@ You can also use the optional `--port` flag (default: `443`):
 ./web-reGOn --winshock example.com --port 8443
 ```
 
-
 ## Padding Oracle
-Use the `--padding-oracle` flag to decrypt a CBC token by exploiting a server-side padding oracle (decrypt mode). Every oracle response is classified as padding-valid or padding-invalid, and the target block is then recovered one byte at a time; no key is needed.
+Use the `--padding-oracle` flag to attack a server that reports padding errors differently from every other decryption failure. The tool recovers a CBC token block by block without the key, and can also forge a token for a chosen plaintext. It runs the modes of PadBuster v0.3.3: decrypt, encrypt (forge), brute force, query-string, POST body, cookie, custom header, prefix, no-IV, hex, resume, intermediate bytes and interactive confirmation.
 
 Supply the target URL (positional argument), the captured ciphertext sample (`--token`), and the error marker the server returns for bad padding (`--error-msg`). The token must decode to a whole number of blocks (default block size is `16`).
 
-The oracle endpoint is derived from the target URL: a trailing `/encrypt` is swapped for `/decrypt` and the query string is dropped, so pass the encrypt endpoint that produced the token. A URL with no `/encrypt` segment keeps its path unchanged. Use the optional `--port` flag to override the port taken from the URL.
+The positional URL is the literal oracle request URL, used as is, exactly like PadBuster's own URL argument. Give the endpoint that actually checks the padding (e.g. `http://host/decrypt?token=...`), not the endpoint that issued the token; the token in the URL, the POST body (`--po-post`) and every cookie (`--po-cookie`) is found and substituted automatically wherever it occurs, so a cookie-only oracle just needs the oracle's own URL as the positional argument with the token supplied via `--po-cookie`. Use the optional `--port` flag to override the port taken from the URL.
 
-If `--error-msg` is omitted, the tool probes all 256 values of the last byte first and infers the padding-error signature from the most frequent response; that automatic mode is less reliable on noisy endpoints. Use `--encoding` when the token is not standard Base64 (`0`=Base64, `1`=Lower HEX, `2`=Upper HEX, `3`=.NET UrlToken, `4`=WebSafe Base64), and repeat `--po-cookie` for each cookie whose value carries the token.
+If `--error-msg` is omitted, the tool probes all 256 values of the last byte first and adopts the most frequent response as the padding-error signature; that automatic mode is less reliable on noisy endpoints. Use `--encoding` when the token is not standard Base64 (`0`=Base64, `1`=Lower HEX, `2`=Upper HEX, `3`=.NET UrlToken, `4`=WebSafe Base64).
 
-Note that many servers return a single generic error for every kind of failure: bad padding, a bad UTF-8 sequence in the decrypted plaintext, or a failed integrity check. Such an endpoint is still a usable oracle, because the scan walks from `0xff` down to `0x00` and keeps the first value the server does not flag. It does mean an occasional stray hit is possible; when a decrypted plaintext looks wrong, capture a second sample and confirm the block by hand.
+Many servers return one generic error for every kind of failure: bad padding, a bad UTF-8 sequence in the decrypted plaintext, or a failed integrity check. Such an endpoint is still a usable oracle, because the scan walks from `0xff` down to `0x00` and keeps the first value the server does not flag. It does mean an occasional stray hit is possible; when a decrypted plaintext looks wrong, capture a second sample and confirm the block by hand.
 
-``` 
-./web-reGOn "http://127.0.0.1:5000/encrypt?data=user=guest" --padding-oracle --port 5000 --token "YWJjZGVmMDEyMzQ1Njc4OQea74b3T7jnT1u1Yba3/38=" --error-msg padding_error
-./web-reGOn "http://10.0.0.5/encrypt?data=user=guest" --padding-oracle --port 8443 --token "ABCD...==" --encoding 0 --error-msg padding_error
-./web-reGOn "http://10.0.0.5/encrypt?data=user=guest" --padding-oracle --port 8443 --token "..." --error-msg "Invalid padding" --block-size 16
+### Request shaping
+Where the token lives decides which flags you need. The sample is substituted into the URL, the POST body and every cookie, so any of them can carry it.
+
+- `--po-post "token=..."` sends the request as a POST with that body; the token in the body is replaced on each attempt.
+- `--po-cookie "token=..."` sends the token as a cookie (repeatable for several cookies).
+- `--po-header "Name: value"` adds a custom header to every request (repeatable).
+- `--po-prefix` prepends fixed encoded bytes to every forged sample.
+- `--po-noencode` stops URL-encoding the payload. Cookie-only oracles need it, because a URL-escaped cookie value is no longer valid Base64.
+- `--po-noiv` prepends a null block before attacking a token that carries no IV.
+
+### Forging a token
+`--po-plaintext "user=admin"` switches to encrypt mode and prints a token that decrypts to that plaintext. `--po-encodedtext` does the same for an already-encoded plaintext, and `--po-ciphertext` starts the forgery from a hex-encoded ciphertext block instead of a null block. `--po-intermediate` supplies the hex intermediate bytes of the first block, which skips its recovery; use the value a previous run reported for the same oracle.
+
+### Long runs
+`--po-resume N` picks up decryption at block N or brute force at attempt N. `--po-bruteforce` recovers the first three intermediate bytes by exhaustive search and needs millions of requests, so it is opt-in. `--po-interactive` asks before accepting each recovered byte, `--po-usebody` folds the response body into the oracle signature, `--po-ignore-body` drops the body from it, and `--po-verbose` prints every request and each byte as it falls.
+
+### Examples
+```
+./web-reGOn "http://127.0.0.1:5000/decrypt?token=YWJjZGVmMDEyMzQ1Njc4OQea74b3T7jnT1u1Yba3/38=" --padding-oracle --token "YWJjZGVmMDEyMzQ1Njc4OQea74b3T7jnT1u1Yba3/38=" --error-msg padding_error
+./web-reGOn "http://127.0.0.1:5000/decrypt_post" --padding-oracle --po-post "token=ABCD...==" --token "ABCD...==" --error-msg padding_error
+./web-reGOn "http://127.0.0.1:5000/cookie_oracle" --padding-oracle --po-cookie "token=ABCD...==" --token "ABCD...==" --po-noencode --error-msg padding_error
+./web-reGOn "http://127.0.0.1:5000/decrypt_noiv?token=ABCD...==" --padding-oracle --po-noiv --token "ABCD...==" --error-msg padding_error
+./web-reGOn "http://127.0.0.1:5000/decrypt_hex?token=9f2c...ab" --padding-oracle --encoding 1 --token "9f2c...ab" --error-msg padding_error
 ```
 
-To also send the token inside a cookie, add one `--po-cookie` per cookie:
+Forge a token for a chosen plaintext, then check it against the oracle:
 ```
-./web-reGOn "http://127.0.0.1:5000/encrypt?data=user=guest" --padding-oracle --port 5000 --token "..." --error-msg padding_error --po-cookie "auth=..."
+./web-reGOn "http://127.0.0.1:5000/decrypt?token=ABCD...==" --padding-oracle --token "ABCD...==" --error-msg padding_error --po-plaintext "user=admin"
+curl "http://127.0.0.1:5000/decrypt?token=<FORGED_TOKEN>"
 ```
+
+Only use this against systems you own or are authorized to test.
