@@ -24,7 +24,7 @@ go build -o web-reGOn
 The documentation of this tool is available [here](https://github.com/ary4nsh/web-reGOn/tree/main/Documentation)
 
 ## Usage
-```bash
+```
 [Reconnaissance]
   -D, --dns                  DNS Records
   -H, --http                 HTTP Status Code
@@ -166,7 +166,7 @@ sudo chmod +x web-reGOn
 ```
 
 ## Examples
-```
+```bash
 # DNS records lookup
 ./web-reGOn --dns example.com
 
